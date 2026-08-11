@@ -168,9 +168,51 @@ db.serialize(() => {
       uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL
+    )
+  `, () => {
+    db.run(`INSERT OR IGNORE INTO admin_users (username, password) VALUES ('9146929608', 'Self@123')`);
+  });
 });
 
 // --- API ENDPOINTS ---
+
+// 0. Admin Login Endpoint
+app.post('/api/login', async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  const trimmedUser = String(username).trim();
+  const trimmedPass = String(password).trim();
+
+  // Primary Default Admin Credentials
+  if (
+    (trimmedUser === '9146929608' && trimmedPass === 'Self@123') ||
+    (trimmedUser === 'admin' && trimmedPass === 'admin123')
+  ) {
+    return res.json({ success: true, token: 'admin_token_' + trimmedUser });
+  }
+
+  db.get(
+    'SELECT * FROM admin_users WHERE username = ? AND password = ?',
+    [trimmedUser, trimmedPass],
+    (err: any, row: any) => {
+      if (row) {
+        return res.json({ success: true, token: 'admin_token_' + trimmedUser });
+      } else {
+        return res.status(401).json({ error: 'Invalid username or password' });
+      }
+    }
+  );
+});
 
 // 1. Get Active Logo
 app.get('/api/current-logo', async (req: Request, res: Response) => {

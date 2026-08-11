@@ -187,10 +187,10 @@ function initializeDatabase() {
         seedDefaultReviews();
     });
 
-    // Create default admin user (username: admin, password: admin123)
+    // Create default admin user
     db.run(`
         INSERT OR IGNORE INTO admin_users (username, password) 
-        VALUES ('admin', 'admin123')
+        VALUES ('9146929608', 'Self@123')
     `);
 }
 
