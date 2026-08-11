@@ -1750,24 +1750,27 @@
             <p style="color: #666; font-size: 0.95rem;">Drag the slider left or right to see how we transform raw moments into magazine-quality art</p>
             
             <div class="ba-container" id="baContainer">
-                <div class="ba-image ba-before">
-                    <div style="text-align: center;">
-                        <span style="font-size: 64px;">📷</span>
-                        <h3 style="font-size: 1.5rem; font-family: 'Playfair Display', serif; margin-top: 10px;">RAW Unedited Capture</h3>
-                        <p style="font-size: 0.9rem; opacity: 0.8;">Standard Camera Color Profile</p>
+                <!-- Base Layer (Right Side / Signature Edit Master Color Grade) -->
+                <div class="ba-image ba-before" style="background: linear-gradient(135deg, #1A1A1A 0%, #2D251E 50%, #1A1A1A 100%); display: flex; align-items: center; justify-content: center;">
+                    <div style="text-align: center; color: #FFFFFF;">
+                        <span style="font-size: 64px;">✨</span>
+                        <h3 style="font-size: 1.6rem; font-family: 'Playfair Display', serif; font-weight: 900; margin-top: 10px; color: var(--accent-gold);">Omkar's Master Color Grade</h3>
+                        <p style="font-size: 0.95rem; color: #E2E8F0;">Warm Tones, Fine Contrast & Skin Retouching</p>
                     </div>
                 </div>
                 
-                <div class="ba-image ba-after" id="baAfterLayer">
-                    <div style="text-align: center; width: 800px; position: absolute; left: 50%; transform: translateX(-50%);">
-                        <span style="font-size: 64px;">✨</span>
-                        <h3 style="font-size: 1.5rem; font-family: 'Playfair Display', serif; margin-top: 10px; color: var(--dark-charcoal);">Omkar's Master Color Grade</h3>
-                        <p style="font-size: 0.9rem; color: #555;">Warm Tones, Fine Contrast & Skin Retouching</p>
+                <!-- Overlay Layer (Left Side / RAW Unedited Photo) -->
+                <div class="ba-image ba-after" id="baAfterLayer" style="background: linear-gradient(135deg, #64748B 0%, #475569 100%); width: 50%;">
+                    <div style="text-align: center; width: 800px; position: absolute; left: 450px; transform: translateX(-50%); color: #FFFFFF;">
+                        <span style="font-size: 64px;">📷</span>
+                        <h3 style="font-size: 1.6rem; font-family: 'Playfair Display', serif; font-weight: 900; margin-top: 10px; color: #FFFFFF;">RAW Unedited Capture</h3>
+                        <p style="font-size: 0.95rem; color: #F1F5F9;">Standard Camera Color Profile</p>
                     </div>
                 </div>
 
-                <div class="ba-label ba-label-before">RAW Photo</div>
-                <div class="ba-label ba-label-after">Signature Edit ✨</div>
+                <!-- Badges -->
+                <div class="ba-label ba-label-before" style="left: 20px; background: rgba(15, 23, 42, 0.9); color: #FFFFFF; border: 1px solid rgba(212,165,116,0.6); z-index: 12;">RAW PHOTO</div>
+                <div class="ba-label ba-label-after" style="right: 20px; background: var(--accent-gold); color: #1A1A1A; font-weight: 800; z-index: 12;">SIGNATURE EDIT ✨</div>
 
                 <!-- Range Slider Controller -->
                 <input type="range" min="0" max="100" value="50" class="ba-slider-input" oninput="updateBeforeAfter(this.value)">
