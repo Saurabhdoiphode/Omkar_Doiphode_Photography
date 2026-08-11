@@ -213,7 +213,28 @@ try {
         localStore.data.profile_photo = [];
         localStore.save();
       } else if (sql.includes('INTO logos')) {
-        localStore.data.logos.push({ id: Date.now(), logo_path: args[0], uploaded_at: new Date().toISOString() });
+        const pathVal = args[0];
+        localStore.data.logos.forEach(l => l.is_active = 0);
+        localStore.data.logos.push({
+          id: Date.now(),
+          logo_path: pathVal,
+          filepath: pathVal,
+          is_active: 1,
+          uploaded_at: new Date().toISOString()
+        });
+        localStore.save();
+      } else if (sql.includes('UPDATE logos SET is_active = 0')) {
+        localStore.data.logos.forEach(l => l.is_active = 0);
+        localStore.save();
+      } else if (sql.includes('UPDATE logos SET is_active = 1')) {
+        const targetId = args[0];
+        localStore.data.logos.forEach(l => {
+          l.is_active = String(l.id) === String(targetId) ? 1 : 0;
+        });
+        localStore.save();
+      } else if (sql.includes('DELETE FROM logos')) {
+        const targetId = args[0];
+        localStore.data.logos = localStore.data.logos.filter(l => String(l.id) !== String(targetId));
         localStore.save();
       }
 
@@ -250,7 +271,8 @@ try {
       } else if (sql.includes('profile_photo')) {
         row = localStore.data.profile_photo[localStore.data.profile_photo.length - 1] || null;
       } else if (sql.includes('logos')) {
-        row = localStore.data.logos[localStore.data.logos.length - 1] || null;
+        row = localStore.data.logos.find(l => l.is_active === 1 || l.is_active === true) ||
+              localStore.data.logos[localStore.data.logos.length - 1] || null;
       } else if (sql.includes('bookings')) {
         row = localStore.data.bookings.find(b => String(b.id) === String(args[0])) || null;
       }
@@ -393,32 +415,58 @@ app.post('/api/login', async (req: Request, res: Response) => {
   );
 });
 
-// 1. Get Active Logo
+// 1. Get Active Logo (For Website Header)
 app.get('/api/current-logo', async (req: Request, res: Response) => {
   try {
-    const { data: logo, error } = await supabase
-      .from('logos')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    let activePath: string | null = null;
+    try {
+      const { data: logo, error } = await supabase
+        .from('logos')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(1)
+        .single();
 
-    if (!error && logo) {
-      return res.json({ success: true, logo_path: logo.logo_path });
+      if (!error && logo) {
+        activePath = logo.logo_path || logo.filepath;
+      }
+    } catch (e) {}
+
+    if (activePath) {
+      return res.json({ success: true, logo_path: activePath, filepath: activePath, logoUrl: activePath });
     }
 
-    db.get('SELECT logo_path FROM logos ORDER BY id DESC LIMIT 1', [], (err, row: any) => {
-      if (row && row.logo_path) {
-        return res.json({ success: true, logo_path: row.logo_path });
+    db.get('SELECT logo_path FROM logos WHERE is_active = 1 OR is_active = true ORDER BY id DESC LIMIT 1', [], (_err: any, row: any) => {
+      const finalPath = row ? row.logo_path : (localStore.data.logos[localStore.data.logos.length - 1]?.logo_path || null);
+      if (finalPath) {
+        return res.json({ success: true, logo_path: finalPath, filepath: finalPath, logoUrl: finalPath });
       }
-      return res.json({ success: false, logo_path: null });
+      return res.json({ success: false, logo_path: null, filepath: null, logoUrl: null });
     });
   } catch (e) {
     res.json({ success: false, logo_path: null });
   }
 });
 
-// 2. Upload Brand Logo
+// 2. Get Logo History (For Admin Dashboard Grid)
+app.get('/api/logo-history', async (req: Request, res: Response) => {
+  try {
+    db.all('SELECT * FROM logos ORDER BY id DESC', [], (_err: any, rows: any[]) => {
+      const list = (rows || []).map(r => ({
+        id: r.id || Date.now(),
+        logo_path: r.logo_path || r.filepath,
+        filepath: r.filepath || r.logo_path,
+        is_active: r.is_active === 1 || r.is_active === true ? 1 : 0,
+        uploaded_at: r.uploaded_at || new Date().toISOString()
+      }));
+      res.json(list);
+    });
+  } catch (e) {
+    res.json([]);
+  }
+});
+
+// 3. Upload Brand Logo
 app.post('/api/upload-logo', uploadLogo.single('logo'), async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No logo file provided' });
@@ -427,12 +475,40 @@ app.post('/api/upload-logo', uploadLogo.single('logo'), async (req: Request, res
   const logoPath = `/uploads/logos/${req.file.filename}`;
 
   try {
-    await supabase.from('logos').insert([{ logo_path: logoPath }]);
-    db.run('INSERT INTO logos (logo_path) VALUES (?)', [logoPath]);
+    try {
+      await supabase.from('logos').insert([{ logo_path: logoPath, is_active: 1 }]);
+    } catch (e) {}
 
-    res.json({ success: true, message: 'Logo uploaded successfully!', logo_path: logoPath });
+    db.run('INSERT INTO logos (logo_path) VALUES (?)', [logoPath], () => {
+      res.json({ success: true, message: 'Logo uploaded successfully!', logo_path: logoPath, filepath: logoPath });
+    });
   } catch (e) {
     res.status(500).json({ error: 'Failed to save logo' });
+  }
+});
+
+// 4. Activate Specific Logo (Admin Dashboard)
+app.post('/api/set-active-logo/:id', async (req: Request, res: Response) => {
+  const id = req.params.id;
+  try {
+    db.run('UPDATE logos SET is_active = 1 WHERE id = ?', [id], () => {
+      res.json({ success: true, message: 'Logo set as active!' });
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to activate logo' });
+  }
+});
+
+// 5. Delete Specific Logo (Admin Dashboard)
+app.delete('/api/delete-logo/:id', async (req: Request, res: Response) => {
+  const id = req.params.id;
+  try {
+    try { await supabase.from('logos').delete().eq('id', id); } catch(e) {}
+    db.run('DELETE FROM logos WHERE id = ?', [id], () => {
+      res.json({ success: true, message: 'Logo deleted successfully!' });
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to delete logo' });
   }
 });
 
