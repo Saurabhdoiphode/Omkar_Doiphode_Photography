@@ -567,7 +567,10 @@
                         <button class="filter-btn" onclick="filterBookings('pending', this)">Pending ⏳</button>
                         <button class="filter-btn" onclick="filterBookings('confirmed', this)">Confirmed ✅</button>
                         <button class="filter-btn" onclick="filterBookings('blocked', this)">Blocked 🔴</button>
-                        <button class="filter-btn" onclick="loadBookings()" style="background:#E2E8F0; color:#1E293B;">🔄 Refresh</button>
+                        <button id="refreshBookingsBtn" onclick="loadBookings(true)" style="background:#0F172A; color:#D4A574; border:1px solid #D4A574; font-weight:700; padding:8px 18px; border-radius:20px; cursor:pointer; transition:all 0.25s ease; display:inline-flex; align-items:center; gap:6px;">
+                            <span>🔄</span>
+                            <span>Refresh Requests</span>
+                        </button>
                     </div>
                 </div>
 
@@ -989,9 +992,17 @@
             }
         }
 
-        // Load Bookings from Backend API
-        async function loadBookings() {
+        // Load Bookings from Backend API with Refresh Feedback & Calendar Sync
+        async function loadBookings(showNotice = false) {
             const tbody = document.getElementById('bookingsTableBody');
+            const btn = document.getElementById('refreshBookingsBtn');
+
+            if (btn) {
+                btn.innerHTML = '<span>⏳</span><span>Refreshing...</span>';
+                btn.style.opacity = '0.75';
+                btn.disabled = true;
+            }
+
             try {
                 const response = await fetch('/api/bookings?t=' + Date.now());
                 const data = await response.json();
@@ -1001,12 +1012,34 @@
                     visibleBookingsLimit = 5;
                     updateMetrics();
                     renderBookingsTable();
+
+                    // Re-sync admin interactive calendar & blocked dates list
+                    renderAdminCalendar();
+                    loadBlockedDatesList();
+
+                    if (showNotice) {
+                        const blockMsg = document.getElementById('blockMessage');
+                        if (blockMsg) {
+                            blockMsg.style.display = 'block';
+                            blockMsg.style.background = '#F0FDF4';
+                            blockMsg.style.color = '#15803D';
+                            blockMsg.style.border = '1px solid #86EFAC';
+                            blockMsg.innerHTML = '🔄 Client booking requests & calendar data refreshed successfully!';
+                            setTimeout(() => { blockMsg.style.display = 'none'; }, 3500);
+                        }
+                    }
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No booking requests found.</td></tr>`;
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No booking requests found.</td></tr>`;
                 }
             } catch (err) {
                 console.error('Error fetching bookings:', err);
-                tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#EF4444;">Failed to load bookings from server.</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#EF4444;">Failed to load bookings from server.</td></tr>`;
+            } finally {
+                if (btn) {
+                    btn.innerHTML = '<span>🔄</span><span>Refresh Requests</span>';
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }
             }
         }
 
@@ -1022,8 +1055,8 @@
         function filterBookings(filter, btn) {
             currentFilter = filter;
             visibleBookingsLimit = 5;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            document.querySelectorAll('.filter-buttons .filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
             renderBookingsTable();
         }
 
