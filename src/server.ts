@@ -418,31 +418,37 @@ app.post('/api/login', async (req: Request, res: Response) => {
 // 1. Get Active Logo (For Website Header)
 app.get('/api/current-logo', async (req: Request, res: Response) => {
   try {
-    let activePath: string | null = null;
+    // 1. Check localStore active logo first (Admin panel's active selection)
+    const localActive = localStore.data.logos.find(l => Number(l.is_active) === 1 || l.is_active === true);
+    if (localActive && (localActive.logo_path || localActive.filepath)) {
+      const p = localActive.logo_path || localActive.filepath;
+      return res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
+    }
+
+    // 2. Check Supabase Cloud active logo
     try {
       const { data: logo, error } = await supabase
         .from('logos')
         .select('*')
+        .eq('is_active', 1)
         .order('id', { ascending: false })
         .limit(1)
         .single();
 
-      if (!error && logo) {
-        activePath = logo.logo_path || logo.filepath;
+      if (!error && logo && (logo.logo_path || logo.filepath)) {
+        const p = logo.logo_path || logo.filepath;
+        return res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
       }
     } catch (e) {}
 
-    if (activePath) {
-      return res.json({ success: true, logo_path: activePath, filepath: activePath, logoUrl: activePath });
+    // 3. Fallback to latest logo in localStore
+    const lastLogo = localStore.data.logos[localStore.data.logos.length - 1];
+    if (lastLogo && (lastLogo.logo_path || lastLogo.filepath)) {
+      const p = lastLogo.logo_path || lastLogo.filepath;
+      return res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
     }
 
-    db.get('SELECT logo_path FROM logos WHERE is_active = 1 OR is_active = true ORDER BY id DESC LIMIT 1', [], (_err: any, row: any) => {
-      const finalPath = row ? row.logo_path : (localStore.data.logos[localStore.data.logos.length - 1]?.logo_path || null);
-      if (finalPath) {
-        return res.json({ success: true, logo_path: finalPath, filepath: finalPath, logoUrl: finalPath });
-      }
-      return res.json({ success: false, logo_path: null, filepath: null, logoUrl: null });
-    });
+    return res.json({ success: false, logo_path: null, filepath: null, logoUrl: null });
   } catch (e) {
     res.json({ success: false, logo_path: null });
   }
