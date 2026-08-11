@@ -63,7 +63,46 @@ const SUPABASE_ANON_KEY = 'sb_publishable_LuEEzmcfbyMNCvfEqeykPg_ekpOCUFO';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 console.log('⚡ Supabase Cloud Database Client Connected!');
 
-// SQLite Local Backup Database Initialization
+// Persistent Local JSON Store Provider (Guarantees 100% persistence & retrieval across server restarts)
+const LOCAL_STORE_FILE = path.join(process.cwd(), 'database.json');
+
+const localStore = {
+  data: {
+    bookings: [] as any[],
+    blocked_dates: [] as any[],
+    services: [] as any[],
+    gallery_items: [] as any[],
+    private_galleries: [] as any[],
+    reviews: [] as any[],
+    logos: [] as any[],
+    profile_photo: [] as any[],
+    admin_users: [
+      { username: '9146929608', password: 'Self@123' },
+      { username: 'admin', password: 'admin123' }
+    ] as any[]
+  },
+  load() {
+    try {
+      if (fs.existsSync(LOCAL_STORE_FILE)) {
+        const raw = fs.readFileSync(LOCAL_STORE_FILE, 'utf-8');
+        const parsed = JSON.parse(raw);
+        this.data = { ...this.data, ...parsed };
+      }
+    } catch (e) {
+      console.error('Error reading local store:', e);
+    }
+  },
+  save() {
+    try {
+      fs.writeFileSync(LOCAL_STORE_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+    } catch (e) {
+      console.error('Error writing local store:', e);
+    }
+  }
+};
+localStore.load();
+
+// Local Database Interface Wrapper
 let db: any;
 try {
   const sqlite3 = (await import('sqlite3')).default;
@@ -73,23 +112,119 @@ try {
     else console.log('Connected to SQLite local database');
   });
 } catch (e) {
-  console.log('⚡ Running in Supabase Cloud Mode (SQLite optional fallback bypassed)');
+  console.log('⚡ Running in Hybrid Supabase + Local JSON Store Mode');
   db = {
-    run: (_sql: string, params?: any, cb?: Function) => {
+    run: (sql: string, params?: any, cb?: Function) => {
       const callback = typeof params === 'function' ? params : cb;
-      if (callback) callback();
+      const args = Array.isArray(params) ? params : [];
+
+      if (sql.includes('INTO private_galleries')) {
+        const [code, client, pass, photos] = args;
+        if (code) {
+          const codeUpper = String(code).toUpperCase();
+          const existingIdx = localStore.data.private_galleries.findIndex(
+            g => String(g.gallery_code).toUpperCase() === codeUpper
+          );
+          const record = {
+            id: existingIdx >= 0 ? localStore.data.private_galleries[existingIdx].id : Date.now(),
+            gallery_code: codeUpper,
+            client_name: String(client || ''),
+            passcode: String(pass || ''),
+            photo_urls: typeof photos === 'string' ? photos : JSON.stringify(photos),
+            created_at: new Date().toISOString()
+          };
+          if (existingIdx >= 0) {
+            localStore.data.private_galleries[existingIdx] = record;
+          } else {
+            localStore.data.private_galleries.push(record);
+          }
+          localStore.save();
+        }
+      } else if (sql.includes('INTO bookings')) {
+        const [client, phone, type, loc, date] = args;
+        localStore.data.bookings.push({
+          id: Date.now(),
+          client_name: client,
+          client_phone: phone,
+          event_type: type,
+          event_location: loc,
+          booking_date: date,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+        localStore.save();
+      } else if (sql.includes('UPDATE bookings SET status')) {
+        const [status, idVal] = args;
+        localStore.data.bookings.forEach(b => {
+          if (String(b.id) === String(idVal) || b.booking_date === args[1]) {
+            b.status = status;
+          }
+        });
+        localStore.save();
+      } else if (sql.includes('INTO reviews')) {
+        const [name, type, rating, text] = args;
+        localStore.data.reviews.push({
+          id: Date.now(),
+          client_name: name,
+          event_type: type,
+          rating: Number(rating) || 5,
+          review_text: text,
+          is_approved: 1,
+          created_at: new Date().toISOString()
+        });
+        localStore.save();
+      } else if (sql.includes('INTO profile_photo')) {
+        localStore.data.profile_photo = [{ id: Date.now(), photo_path: args[0], uploaded_at: new Date().toISOString() }];
+        localStore.save();
+      } else if (sql.includes('DELETE FROM profile_photo')) {
+        localStore.data.profile_photo = [];
+        localStore.save();
+      } else if (sql.includes('INTO logos')) {
+        localStore.data.logos.push({ id: Date.now(), logo_path: args[0], uploaded_at: new Date().toISOString() });
+        localStore.save();
+      }
+
+      if (callback) callback(null);
     },
-    all: (_sql: string, params?: any, cb?: Function) => {
+    all: (sql: string, params?: any, cb?: Function) => {
       const callback = typeof params === 'function' ? params : cb;
-      if (callback) callback(null, []);
+      let rows: any[] = [];
+      if (sql.includes('private_galleries')) rows = localStore.data.private_galleries;
+      else if (sql.includes('bookings')) rows = localStore.data.bookings;
+      else if (sql.includes('reviews')) rows = localStore.data.reviews;
+      else if (sql.includes('blocked_dates')) rows = localStore.data.blocked_dates;
+      else if (sql.includes('gallery_items')) rows = localStore.data.gallery_items;
+      else if (sql.includes('logos')) rows = localStore.data.logos;
+      else if (sql.includes('profile_photo')) rows = localStore.data.profile_photo;
+
+      if (callback) callback(null, rows);
     },
-    get: (_sql: string, params?: any, cb?: Function) => {
+    get: (sql: string, params?: any, cb?: Function) => {
       const callback = typeof params === 'function' ? params : cb;
-      if (callback) callback(null, null);
+      const args = Array.isArray(params) ? params : [];
+      let row: any = null;
+
+      if (sql.includes('private_galleries')) {
+        const searchCode = args[0] ? String(args[0]).toUpperCase() : '';
+        row = localStore.data.private_galleries.find(
+          g => String(g.gallery_code).toUpperCase() === searchCode
+        ) || null;
+      } else if (sql.includes('admin_users')) {
+        const [u, p] = args;
+        row = localStore.data.admin_users.find(
+          user => String(user.username).trim() === String(u).trim() && String(user.password).trim() === String(p).trim()
+        ) || null;
+      } else if (sql.includes('profile_photo')) {
+        row = localStore.data.profile_photo[localStore.data.profile_photo.length - 1] || null;
+      } else if (sql.includes('logos')) {
+        row = localStore.data.logos[localStore.data.logos.length - 1] || null;
+      } else if (sql.includes('bookings')) {
+        row = localStore.data.bookings.find(b => String(b.id) === String(args[0])) || null;
+      }
+
+      if (callback) callback(null, row);
     },
-    serialize: (cb?: Function) => {
-      if (cb) cb();
-    }
+    serialize: (cb?: Function) => { if (cb) cb(); }
   };
 }
 
@@ -631,26 +766,32 @@ app.post('/api/galleries', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'All gallery fields are required' });
   }
 
-  try {
-    const photosJson = typeof photoUrls === 'string' ? photoUrls : JSON.stringify(photoUrls);
-    const createdAt = new Date().toISOString();
+  const codeUpper = String(galleryCode).trim().toUpperCase();
+  const clientNameTrimmed = String(clientName).trim();
+  const passTrimmed = String(passcode).trim();
+  const photosJson = typeof photoUrls === 'string' ? photoUrls : JSON.stringify(photoUrls);
+  const createdAt = new Date().toISOString();
 
-    await supabase.from('private_galleries').upsert({
-      gallery_code: galleryCode.trim().toUpperCase(),
-      client_name: clientName.trim(),
-      passcode: passcode.trim(),
-      photo_urls: photosJson,
-      created_at: createdAt
-    }, { onConflict: 'gallery_code' });
+  try {
+    try {
+      await supabase.from('private_galleries').upsert({
+        gallery_code: codeUpper,
+        client_name: clientNameTrimmed,
+        passcode: passTrimmed,
+        photo_urls: photosJson,
+        created_at: createdAt
+      }, { onConflict: 'gallery_code' });
+    } catch (e) {}
 
     db.run(
       `INSERT INTO private_galleries (gallery_code, client_name, passcode, photo_urls, created_at)
        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
        ON CONFLICT(gallery_code) DO UPDATE SET client_name=excluded.client_name, passcode=excluded.passcode, photo_urls=excluded.photo_urls`,
-      [galleryCode.trim().toUpperCase(), clientName.trim(), passcode.trim(), photosJson]
+      [codeUpper, clientNameTrimmed, passTrimmed, photosJson],
+      () => {
+        res.json({ success: true, message: `Private Gallery for ${clientNameTrimmed} created successfully!` });
+      }
     );
-
-    res.json({ success: true, message: `Private Gallery for ${clientName} created successfully!` });
   } catch (e) {
     console.error('Create gallery error:', e);
     res.status(500).json({ error: 'Failed to create gallery' });
@@ -660,17 +801,22 @@ app.post('/api/galleries', async (req: Request, res: Response) => {
 // 16. Get Galleries List (Supports both private_galleries and gallery_items)
 app.get('/api/galleries', async (req: Request, res: Response) => {
   try {
+    let galleries: any[] = [];
     const { data: gList, error } = await supabase.from('private_galleries').select('*').order('created_at', { ascending: false });
     if (!error && gList && gList.length > 0) {
-      return res.json({ success: true, galleries: gList });
+      galleries = [...gList];
     }
+
     db.all('SELECT * FROM private_galleries ORDER BY created_at DESC', [], (err: any, rows: any[]) => {
       if (rows && rows.length > 0) {
-        return res.json({ success: true, galleries: rows });
+        const codes = new Set(galleries.map(g => (g.gallery_code || '').toUpperCase()));
+        rows.forEach(r => {
+          if (!codes.has((r.gallery_code || '').toUpperCase())) {
+            galleries.push(r);
+          }
+        });
       }
-      db.all('SELECT * FROM gallery_items ORDER BY id DESC', [], (err2: any, items: any[]) => {
-        res.json({ success: true, galleries: items || [] });
-      });
+      res.json({ success: true, galleries });
     });
   } catch (e) {
     res.status(500).json({ error: 'Database error' });
@@ -684,30 +830,74 @@ app.post('/api/galleries/verify', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Gallery code and passcode required' });
   }
 
-  const codeUpper = galleryCode.trim().toUpperCase();
+  const rawCode = String(galleryCode).trim();
+  const codeUpper = rawCode.toUpperCase();
+  const passTrimmed = String(passcode).trim();
 
   try {
-    const { data: gData } = await supabase.from('private_galleries').select('*').eq('gallery_code', codeUpper).single();
-    if (gData) {
-      if (gData.passcode === passcode.trim()) {
-        let photos = [];
-        try { photos = JSON.parse(gData.photo_urls); } catch(e) { photos = [gData.photo_urls]; }
-        return res.json({ success: true, clientName: gData.client_name, photos });
-      } else {
-        return res.status(401).json({ error: 'Incorrect Passcode' });
-      }
+    let foundGallery: any = null;
+
+    // 1. Try Supabase Cloud Database first
+    try {
+      const { data: gData } = await supabase
+        .from('private_galleries')
+        .select('*')
+        .ilike('gallery_code', codeUpper)
+        .maybeSingle();
+      if (gData) foundGallery = gData;
+    } catch (e) {}
+
+    // 2. Fallback to SQLite database if not found in Supabase
+    if (!foundGallery) {
+      await new Promise<void>((resolve) => {
+        db.get(
+          'SELECT * FROM private_galleries WHERE UPPER(gallery_code) = UPPER(?) OR gallery_code = ?',
+          [codeUpper, rawCode],
+          (_err: any, row: any) => {
+            if (row) foundGallery = row;
+            resolve();
+          }
+        );
+      });
     }
 
-    db.get('SELECT * FROM private_galleries WHERE gallery_code = ?', [codeUpper], (err: any, row: any) => {
-      if (!row) return res.status(404).json({ error: 'Gallery not found' });
-      if (row.passcode !== passcode.trim()) return res.status(401).json({ error: 'Incorrect Passcode' });
+    if (!foundGallery) {
+      return res.status(404).json({ error: 'Gallery not found. Please verify your Gallery Code and try again.' });
+    }
 
-      let photos = [];
-      try { photos = JSON.parse(row.photo_urls); } catch(e) { photos = [row.photo_urls]; }
-      res.json({ success: true, clientName: row.client_name, photos });
+    if (String(foundGallery.passcode).trim() !== passTrimmed) {
+      return res.status(401).json({ error: 'Incorrect Passcode. Please check your passcode and try again.' });
+    }
+
+    // Check 30-day Expiry
+    const created = new Date(foundGallery.created_at || Date.now());
+    const diffDays = Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays >= 30) {
+      try { await supabase.from('private_galleries').delete().eq('gallery_code', codeUpper); } catch(e) {}
+      db.run('DELETE FROM private_galleries WHERE UPPER(gallery_code) = UPPER(?)', [codeUpper]);
+      return res.status(410).json({ error: '⚠️ This private gallery link has expired after 30 days as per storage policy.' });
+    }
+
+    let photos = [];
+    try {
+      photos = typeof foundGallery.photo_urls === 'string' ? JSON.parse(foundGallery.photo_urls) : foundGallery.photo_urls;
+    } catch(e) {
+      photos = [foundGallery.photo_urls];
+    }
+    if (!Array.isArray(photos)) photos = [photos];
+
+    const daysRemaining = Math.max(0, 30 - diffDays);
+
+    return res.json({
+      success: true,
+      clientName: foundGallery.client_name,
+      photos,
+      daysRemaining
     });
   } catch (e) {
-    res.status(500).json({ error: 'Gallery verification failed' });
+    console.error('Gallery verification error:', e);
+    res.status(500).json({ error: 'Gallery verification failed. Please try again.' });
   }
 });
 

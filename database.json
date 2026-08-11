@@ -1,0 +1,40 @@
+{
+  "bookings": [
+    {
+      "id": 1786437258242,
+      "client_name": "Saurabh D",
+      "client_phone": "9146929608",
+      "event_type": "Marriage Package",
+      "event_location": "Pune",
+      "booking_date": "2026-12-25",
+      "status": "pending",
+      "created_at": "2026-08-11T08:34:18.242Z"
+    }
+  ],
+  "blocked_dates": [],
+  "services": [],
+  "gallery_items": [],
+  "private_galleries": [
+    {
+      "id": 1786437207777,
+      "gallery_code": "RAHUL2026",
+      "client_name": "Rahul & Priya",
+      "passcode": "1234",
+      "photo_urls": "[\"/uploads/gallery/photo1.jpg\",\"/uploads/gallery/photo2.jpg\"]",
+      "created_at": "2026-08-11T08:33:27.777Z"
+    }
+  ],
+  "reviews": [],
+  "logos": [],
+  "profile_photo": [],
+  "admin_users": [
+    {
+      "username": "9146929608",
+      "password": "Self@123"
+    },
+    {
+      "username": "admin",
+      "password": "admin123"
+    }
+  ]
+}
