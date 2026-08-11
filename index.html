@@ -2177,23 +2177,37 @@
             return formatDateStr(now.getFullYear(), now.getMonth(), now.getDate());
         }
 
-        // Load Logo from Server
+        // Load Logo from Server with Fallback Handling
         async function loadLogo() {
-            try {
-                const response = await fetch('/api/current-logo');
-                const data = await response.json();
+            const logoImage = document.getElementById('logoImage');
+            const defaultLogo = document.getElementById('defaultLogo');
 
-                if (data.logo_path) {
-                    const logoImage = document.getElementById('logoImage');
-                    const defaultLogo = document.getElementById('defaultLogo');
-                    
-                    logoImage.src = data.logo_path;
-                    logoImage.style.display = 'block';
-                    logoImage.style.margin = '0 auto 0.8rem auto';
-                    defaultLogo.style.display = 'none';
+            if (logoImage) {
+                logoImage.onerror = function() {
+                    logoImage.style.display = 'none';
+                    if (defaultLogo) defaultLogo.style.display = 'block';
+                };
+            }
+
+            try {
+                const response = await fetch('/api/current-logo?t=' + Date.now());
+                const data = await response.json();
+                const pathVal = data.logo_path || data.filepath || data.logoUrl;
+
+                if (data.success && pathVal) {
+                    if (logoImage) {
+                        logoImage.src = pathVal;
+                        logoImage.style.display = 'block';
+                        logoImage.style.margin = '0 auto 0.8rem auto';
+                    }
+                    if (defaultLogo) defaultLogo.style.display = 'none';
+                } else {
+                    if (logoImage) logoImage.style.display = 'none';
+                    if (defaultLogo) defaultLogo.style.display = 'block';
                 }
             } catch (error) {
-                console.log('Using default logo');
+                if (logoImage) logoImage.style.display = 'none';
+                if (defaultLogo) defaultLogo.style.display = 'block';
             }
         }
 

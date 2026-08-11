@@ -71,15 +71,7 @@
       "created_at": "2026-08-11T08:56:19.167Z"
     }
   ],
-  "logos": [
-    {
-      "id": 1786440067190,
-      "logo_path": "/uploads/logos/logo_1786440067115.png",
-      "filepath": "/uploads/logos/logo_1786440067115.png",
-      "is_active": 1,
-      "uploaded_at": "2026-08-11T09:21:07.190Z"
-    }
-  ],
+  "logos": [],
   "profile_photo": [],
   "admin_users": [
     {
