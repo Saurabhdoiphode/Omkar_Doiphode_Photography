@@ -178,6 +178,17 @@ db.serialize(() => {
   `, () => {
     db.run(`INSERT OR IGNORE INTO admin_users (username, password) VALUES ('9146929608', 'Self@123')`);
   });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS private_galleries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      gallery_code TEXT UNIQUE NOT NULL,
+      client_name TEXT NOT NULL,
+      passcode TEXT NOT NULL,
+      photo_urls TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 });
 
 // --- API ENDPOINTS ---
@@ -598,22 +609,109 @@ app.get('/api/services', async (req: Request, res: Response) => {
   }
 });
 
-// 14. Get Galleries List
+// 14. Bulk Gallery Photos Upload (Admin Dashboard Client Gallery Creator)
+app.post('/api/upload-gallery-photos', uploadGallery.array('photos', 50), (req: Request, res: Response) => {
+  try {
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'No photo files selected' });
+    }
+    const fileUrls = files.map(f => `/uploads/gallery/${f.filename}`);
+    res.json({ success: true, fileUrls, message: `${fileUrls.length} photo(s) uploaded successfully!` });
+  } catch (e) {
+    console.error('Gallery photos upload error:', e);
+    res.status(500).json({ error: 'Failed to upload photo files' });
+  }
+});
+
+// 15. Create Private Client Gallery
+app.post('/api/galleries', async (req: Request, res: Response) => {
+  const { galleryCode, clientName, passcode, photoUrls } = req.body;
+  if (!galleryCode || !clientName || !passcode || !photoUrls) {
+    return res.status(400).json({ error: 'All gallery fields are required' });
+  }
+
+  try {
+    const photosJson = typeof photoUrls === 'string' ? photoUrls : JSON.stringify(photoUrls);
+    const createdAt = new Date().toISOString();
+
+    await supabase.from('private_galleries').upsert({
+      gallery_code: galleryCode.trim().toUpperCase(),
+      client_name: clientName.trim(),
+      passcode: passcode.trim(),
+      photo_urls: photosJson,
+      created_at: createdAt
+    }, { onConflict: 'gallery_code' });
+
+    db.run(
+      `INSERT INTO private_galleries (gallery_code, client_name, passcode, photo_urls, created_at)
+       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+       ON CONFLICT(gallery_code) DO UPDATE SET client_name=excluded.client_name, passcode=excluded.passcode, photo_urls=excluded.photo_urls`,
+      [galleryCode.trim().toUpperCase(), clientName.trim(), passcode.trim(), photosJson]
+    );
+
+    res.json({ success: true, message: `Private Gallery for ${clientName} created successfully!` });
+  } catch (e) {
+    console.error('Create gallery error:', e);
+    res.status(500).json({ error: 'Failed to create gallery' });
+  }
+});
+
+// 16. Get Galleries List (Supports both private_galleries and gallery_items)
 app.get('/api/galleries', async (req: Request, res: Response) => {
   try {
-    const { data: galleries, error } = await supabase.from('gallery_items').select('*');
-    if (!error && galleries && galleries.length > 0) {
-      return res.json({ success: true, galleries });
+    const { data: gList, error } = await supabase.from('private_galleries').select('*').order('created_at', { ascending: false });
+    if (!error && gList && gList.length > 0) {
+      return res.json({ success: true, galleries: gList });
     }
-    db.all('SELECT * FROM gallery_items ORDER BY id DESC', [], (err, rows) => {
-      res.json({ success: true, galleries: rows || [] });
+    db.all('SELECT * FROM private_galleries ORDER BY created_at DESC', [], (err: any, rows: any[]) => {
+      if (rows && rows.length > 0) {
+        return res.json({ success: true, galleries: rows });
+      }
+      db.all('SELECT * FROM gallery_items ORDER BY id DESC', [], (err2: any, items: any[]) => {
+        res.json({ success: true, galleries: items || [] });
+      });
     });
   } catch (e) {
     res.status(500).json({ error: 'Database error' });
   }
 });
 
-// 15. Upload Gallery Image
+// 17. Verify Private Client Gallery Passcode
+app.post('/api/galleries/verify', async (req: Request, res: Response) => {
+  const { galleryCode, passcode } = req.body;
+  if (!galleryCode || !passcode) {
+    return res.status(400).json({ error: 'Gallery code and passcode required' });
+  }
+
+  const codeUpper = galleryCode.trim().toUpperCase();
+
+  try {
+    const { data: gData } = await supabase.from('private_galleries').select('*').eq('gallery_code', codeUpper).single();
+    if (gData) {
+      if (gData.passcode === passcode.trim()) {
+        let photos = [];
+        try { photos = JSON.parse(gData.photo_urls); } catch(e) { photos = [gData.photo_urls]; }
+        return res.json({ success: true, clientName: gData.client_name, photos });
+      } else {
+        return res.status(401).json({ error: 'Incorrect Passcode' });
+      }
+    }
+
+    db.get('SELECT * FROM private_galleries WHERE gallery_code = ?', [codeUpper], (err: any, row: any) => {
+      if (!row) return res.status(404).json({ error: 'Gallery not found' });
+      if (row.passcode !== passcode.trim()) return res.status(401).json({ error: 'Incorrect Passcode' });
+
+      let photos = [];
+      try { photos = JSON.parse(row.photo_urls); } catch(e) { photos = [row.photo_urls]; }
+      res.json({ success: true, clientName: row.client_name, photos });
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Gallery verification failed' });
+  }
+});
+
+// 18. Upload Single Gallery Image (Portfolio Section)
 app.post('/api/upload-gallery', uploadGallery.single('gallery_image'), async (req: Request, res: Response) => {
   const { title, category, badge } = req.body;
   if (!req.file || !title || !category) {
@@ -635,7 +733,7 @@ app.post('/api/upload-gallery', uploadGallery.single('gallery_image'), async (re
   }
 });
 
-// 16. Delete Gallery Image
+// 19. Delete Gallery Image
 app.delete('/api/galleries/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
   try {
