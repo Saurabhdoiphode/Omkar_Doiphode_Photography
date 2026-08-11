@@ -6,8 +6,8 @@ const sqlite3 = require('sqlite3').verbose();
 const { createClient } = require('@supabase/supabase-js');
 
 // Initialize Supabase Cloud Database Client
-const SUPABASE_URL = 'https://wrirqfaewmuukxlowiuj.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_LuEEzmcfbyMNCvfEqeykPg_ekpOCUFO';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wrirqfaewmuukxlowiuj.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LuEEzmcfbyMNCvfEqeykPg_ekpOCUFO';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 console.log('⚡ Supabase Cloud Database Client Connected!');

@@ -58,8 +58,8 @@ const galleryStorage = multer.diskStorage({
 const uploadGallery = multer({ storage: galleryStorage });
 
 // Supabase Cloud Database Client
-const SUPABASE_URL = 'https://wrirqfaewmuukxlowiuj.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_LuEEzmcfbyMNCvfEqeykPg_ekpOCUFO';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wrirqfaewmuukxlowiuj.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LuEEzmcfbyMNCvfEqeykPg_ekpOCUFO';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 console.log('⚡ Supabase Cloud Database Client Connected!');
 
