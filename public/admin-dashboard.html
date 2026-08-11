@@ -1832,7 +1832,7 @@
             if (!container) return;
 
             try {
-                const res = await fetch('/api/reviews?t=' + Date.now());
+                const res = await fetch('/api/admin/reviews?t=' + Date.now());
                 const data = await res.json();
                 const reviews = data.reviews || [];
 

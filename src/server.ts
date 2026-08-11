@@ -91,6 +91,14 @@ const localStore = {
     } catch (e) {
       console.error('Error reading local store:', e);
     }
+    if (!this.data.reviews || this.data.reviews.length === 0) {
+      this.data.reviews = [
+        { id: 1, client_name: 'Amit & Priya', event_type: 'Marriage Package', rating: 5, review_text: 'Omkar captured our wedding so beautifully! The lighting and emotional shots were beyond expectation.', is_approved: 1, created_at: new Date().toISOString() },
+        { id: 2, client_name: 'Siddharth Patil', event_type: 'Pre-Wedding Shoot', rating: 5, review_text: 'Amazing pre-wedding shoot experience at Mahabaleshwar. Super professional and creative team!', is_approved: 1, created_at: new Date().toISOString() },
+        { id: 3, client_name: 'Neha Deshmukh', event_type: 'Baby Shoot', rating: 5, review_text: 'Loved the newborn baby photoshoot themes! So patient and gentle with our baby. Highly recommended!', is_approved: 1, created_at: new Date().toISOString() }
+      ];
+      this.save();
+    }
   },
   save() {
     try {
@@ -172,6 +180,18 @@ try {
           is_approved: 1,
           created_at: new Date().toISOString()
         });
+        localStore.save();
+      } else if (sql.includes('UPDATE reviews SET is_approved')) {
+        const [isApproved, idVal] = args;
+        localStore.data.reviews.forEach(r => {
+          if (String(r.id) === String(idVal)) {
+            r.is_approved = Number(isApproved) ? 1 : 0;
+          }
+        });
+        localStore.save();
+      } else if (sql.includes('DELETE FROM reviews')) {
+        const idVal = args[0];
+        localStore.data.reviews = localStore.data.reviews.filter(r => String(r.id) !== String(idVal));
         localStore.save();
       } else if (sql.includes('INTO profile_photo')) {
         localStore.data.profile_photo = [{ id: Date.now(), photo_path: args[0], uploaded_at: new Date().toISOString() }];
@@ -953,42 +973,106 @@ const getReviewsHandler = async (req: Request, res: Response) => {
 app.get('/api/reviews', getReviewsHandler);
 app.get('/api/admin/reviews', getReviewsHandler);
 
-// 18. Submit Client Review
+// 20. Public Website Approved Reviews Endpoint
+app.get('/api/reviews', async (req: Request, res: Response) => {
+  try {
+    let approvedReviews: any[] = [];
+    try {
+      const { data: reviews, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('is_approved', 1)
+        .order('created_at', { ascending: false });
+
+      if (!error && reviews && reviews.length > 0) {
+        approvedReviews = reviews;
+      }
+    } catch (e) {}
+
+    db.all('SELECT * FROM reviews WHERE is_approved = 1 ORDER BY created_at DESC', [], (err: any, rows: any[]) => {
+      const dbRows = (rows || []).filter(r => Number(r.is_approved) === 1);
+      const combined = [...approvedReviews];
+      const existingIds = new Set(combined.map(r => String(r.id)));
+      dbRows.forEach(r => {
+        if (!existingIds.has(String(r.id))) combined.push(r);
+      });
+      res.json({ success: true, reviews: combined });
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// 21. Admin Dashboard All Reviews Endpoint
+app.get('/api/admin/reviews', async (req: Request, res: Response) => {
+  try {
+    let allRevs: any[] = [];
+    try {
+      const { data: reviews, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
+      if (!error && reviews && reviews.length > 0) {
+        allRevs = [...reviews];
+      }
+    } catch (e) {}
+
+    db.all('SELECT * FROM reviews ORDER BY created_at DESC', [], (err: any, rows: any[]) => {
+      const dbRows = rows || [];
+      const combined = [...allRevs];
+      const existingIds = new Set(combined.map(r => String(r.id)));
+      dbRows.forEach(r => {
+        if (!existingIds.has(String(r.id))) combined.push(r);
+      });
+      res.json({ success: true, reviews: combined });
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// 22. Submit Client Review
 app.post('/api/reviews', async (req: Request, res: Response) => {
   const { clientName, eventType, rating, reviewText } = req.body;
   if (!clientName || !eventType || !rating || !reviewText) {
-    return res.status(400).json({ error: 'All fields required' });
+    return res.status(400).json({ error: 'All fields are required' });
   }
 
+  const nameTrimmed = String(clientName).trim();
+  const eventTrimmed = String(eventType).trim();
+  const numRating = parseInt(rating, 10) || 5;
+  const textTrimmed = String(reviewText).trim();
+
   try {
-    await supabase.from('reviews').insert([{
-      client_name: clientName,
-      event_type: eventType,
-      rating: parseInt(rating, 10),
-      review_text: reviewText,
-      is_approved: 1
-    }]);
+    try {
+      await supabase.from('reviews').insert([{
+        client_name: nameTrimmed,
+        event_type: eventTrimmed,
+        rating: numRating,
+        review_text: textTrimmed,
+        is_approved: 1
+      }]);
+    } catch (e) {}
 
     db.run(
       'INSERT INTO reviews (client_name, event_type, rating, review_text, is_approved) VALUES (?, ?, ?, ?, 1)',
-      [clientName, eventType, parseInt(rating, 10), reviewText]
+      [nameTrimmed, eventTrimmed, numRating, textTrimmed],
+      () => {
+        res.json({ success: true, message: 'Thank you! Your review has been submitted successfully.' });
+      }
     );
-
-    res.json({ success: true, message: 'Review submitted successfully!' });
   } catch (e) {
     res.status(500).json({ error: 'Failed to submit review' });
   }
 });
 
-// 19. Approve / Moderate Review (Supports both /api/reviews/:id/approve and /api/admin/reviews/:id/approve)
+// 23. Approve / Moderate Review
 const approveReviewHandler = async (req: Request, res: Response) => {
   const id = req.params.id;
   const isApproved = req.body && req.body.isApproved !== undefined ? (req.body.isApproved ? 1 : 0) : 1;
 
   try {
-    await supabase.from('reviews').update({ is_approved: isApproved }).eq('id', id);
-    db.run('UPDATE reviews SET is_approved = ? WHERE id = ?', [isApproved, id]);
-    res.json({ success: true, message: 'Review status updated!' });
+    try { await supabase.from('reviews').update({ is_approved: isApproved }).eq('id', id); } catch(e) {}
+    db.run('UPDATE reviews SET is_approved = ? WHERE id = ?', [isApproved, id], () => {
+      res.json({ success: true, message: 'Review status updated!' });
+    });
   } catch (e) {
     res.status(500).json({ error: 'Failed to update review' });
   }
@@ -997,13 +1081,14 @@ const approveReviewHandler = async (req: Request, res: Response) => {
 app.post('/api/reviews/:id/approve', approveReviewHandler);
 app.post('/api/admin/reviews/:id/approve', approveReviewHandler);
 
-// 20. Delete Review
+// 24. Delete Review
 const deleteReviewHandler = async (req: Request, res: Response) => {
   const id = req.params.id;
   try {
-    await supabase.from('reviews').delete().eq('id', id);
-    db.run('DELETE FROM reviews WHERE id = ?', [id]);
-    res.json({ success: true, message: 'Review deleted!' });
+    try { await supabase.from('reviews').delete().eq('id', id); } catch(e) {}
+    db.run('DELETE FROM reviews WHERE id = ?', [id], () => {
+      res.json({ success: true, message: 'Review deleted successfully!' });
+    });
   } catch (e) {
     res.status(500).json({ error: 'Failed to delete review' });
   }
