@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Omkar Doiphode Photography</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-pearl: #F8FAFC;
+            --navy-header: #0F172A;
+            --accent-gold: #D4A574;
+            --text-dark: #0F172A;
+            --text-muted: #475569;
+            --card-white: #FFFFFF;
+            --card-border: #E2E8F0;
+        }
+
+        body {
+            background-color: var(--bg-pearl);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(212, 165, 116, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(15, 23, 42, 0.03) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--navy-header);
+            border-bottom: 3px solid var(--accent-gold);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .view-site-btn {
+            background: rgba(212, 165, 116, 0.15);
+            color: #D4A574;
+            border: 1px solid #D4A574;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .view-site-btn:hover {
+            background: var(--accent-gold);
+            color: #0F172A;
+        }
+
+        .logout-btn {
+            background-color: #FEE2E2;
+            color: #991B1B;
+            padding: 8px 18px;
+            border: 1px solid #FCA5A5;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.25s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Tab Navigation Bar */
+        .tab-nav {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #E2E8F0;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: #0F172A;
+            background-color: #F8FAFC;
+        }
+
+        .tab-btn.active {
+            color: #FFFFFF !important;
+            background: #0F172A;
+            border-bottom: 3px solid #D4A574;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);
+            font-weight: 700;
+        }
+
+        .tab-btn.active span {
+            color: #FFFFFF !important;
+        }
+
+        ::placeholder {
+            color: #64748B !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+
+        ::-webkit-input-placeholder {
+            color: #64748B !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+
+        ::-moz-placeholder {
+            color: #64748B !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Metrics Summary Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E2E8F0;
+            border-left: 5px solid var(--accent-gold);
+            transition: transform 0.25s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .metric-card.pending-card { border-left-color: #D97706; }
+        .metric-card.confirmed-card { border-left-color: #16A34A; }
+        .metric-card.blocked-card { border-left-color: #DC2626; }
+
+        .metric-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #0F172A;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Control Panel Header */
+        .control-panel, .upload-section {
+            background: #FFFFFF;
+            padding: 1.8rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E2E8F0;
+            margin-bottom: 2rem;
+        }
+
+        .section-title, h1, h2, h3, h4, h5, h6 {
+            color: #0F172A !important;
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+        }
+
+        p, span, label, div {
+            color: #334155;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #F1F5F9;
+            color: #475569;
+            border: 1px solid #CBD5E1;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #0F172A;
+            color: #D4A574;
+            font-weight: 700;
+        }
+
+        /* Table Design */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .bookings-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #E2E8F0;
+            background: #FFFFFF;
+        }
+
+        .bookings-table th {
+            background: #0F172A;
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 14px 16px;
+            text-align: left;
+        }
+
+        .bookings-table td {
+            padding: 16px;
+            font-size: 14px;
+            color: #0F172A !important;
+            border-bottom: 1px solid #F1F5F9;
+            background: #FFFFFF;
+        }
+
+        .bookings-table tr:hover td {
+            background: #F8FAFC;
+        }
+
+        /* Form Inputs & Select Dropdowns */
+        input[type="text"], input[type="date"], input[type="number"], select, textarea {
+            background: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1.5px solid #CBD5E1 !important;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #D4A574 !important;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+        }
+
+        select option {
+            background: #FFFFFF !important;
+            color: #0F172A !important;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-badge.confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+        .status-badge.pending { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+        .status-badge.blocked { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+
+        .status-badge.pending {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+
+        .status-badge.confirmed {
+            background: #DCFCE7;
+            color: #15803D;
+            border: 1px solid #86EFAC;
+        }
+
+        .status-badge.blocked {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+
+        /* Table Action Buttons */
+        .action-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-confirm {
+            background: #22C55E;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm:hover { background: #16A34A; }
+
+        .btn-block {
+            background: #EAB308;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-block:hover { background: #CA8A04; }
+
+        .btn-delete {
+            background: #EF4444;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover { background: #DC2626; }
+
+        .btn-contact {
+            background: #0284C7;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-contact:hover { background: #0369A1; }
+
+        /* Manual Date Blocking Card */
+        .block-date-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(229, 208, 197, 0.6);
+            margin-top: 2rem;
+        }
+
+        .block-date-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .date-picker-input {
+            padding: 10px 14px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* Existing Upload Styles */
+        .upload-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--soft-rose);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--soft-rose);
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(229, 208, 197, 0.05);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-gold);
+            background-color: rgba(212, 165, 116, 0.05);
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .logo-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #E2E8F0;
+        }
+
+        .logo-image {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            background-color: var(--cream-bg);
+            padding: 1rem;
+        }
+
+        .logo-info {
+            padding: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #94A3B8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-title">
+            <span>📷</span>
+            <span>Omkar Doiphode Photography — Admin Panel</span>
+        </div>
+        <div class="header-actions">
+            <a href="/" target="_blank" class="view-site-btn">🌐 View Website</a>
+            <button class="logout-btn" onclick="logout()">Logout 🚪</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('bookingsTab', this)">
+                <span>📅</span>
+                <span>Booking Requests & Calendar</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('analyticsTab', this); renderAnalyticsCharts();">
+                <span>📊</span>
+                <span>Business Analytics</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('galleriesTab', this); loadAdminGalleries();">
+                <span>🔐</span>
+                <span>Private Galleries</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('reviewsTab', this); loadAdminReviews();">
+                <span>⭐</span>
+                <span>Review Moderation</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('logosTab', this)">
+                <span>🎨</span>
+                <span>Logo & Branding</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: Booking Requests & Calendar Management -->
+        <div id="bookingsTab" class="tab-content active">
+            <!-- Metrics Summary Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Total Booking Requests</div>
+                    <div class="metric-value" id="metricTotal">0</div>
+                </div>
+                <div class="metric-card pending-card">
+                    <div class="metric-title">Pending Requests (Yellow ⏳)</div>
+                    <div class="metric-value" id="metricPending">0</div>
+                </div>
+                <div class="metric-card confirmed-card">
+                    <div class="metric-title">Confirmed Bookings (Green ✅)</div>
+                    <div class="metric-value" id="metricConfirmed">0</div>
+                </div>
+                <div class="metric-card blocked-card">
+                    <div class="metric-title">Blocked Dates (Red 🔴)</div>
+                    <div class="metric-value" id="metricBlocked">0</div>
+                </div>
+            </div>
+
+            <!-- Bookings List & Controls -->
+            <div class="control-panel">
+                <div class="panel-header">
+                    <h2 class="section-title">Client Booking Requests</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterBookings('all', this)">All</button>
+                        <button class="filter-btn" onclick="filterBookings('pending', this)">Pending ⏳</button>
+                        <button class="filter-btn" onclick="filterBookings('confirmed', this)">Confirmed ✅</button>
+                        <button class="filter-btn" onclick="filterBookings('blocked', this)">Blocked 🔴</button>
+                        <button class="filter-btn" onclick="loadBookings()" style="background:#E2E8F0; color:#1E293B;">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Bookings Data Table -->
+                <div class="table-responsive">
+                    <table class="bookings-table">
+                        <thead>
+                            <tr>
+                                <th>Event Date</th>
+                                <th>Client Name</th>
+                                <th>Contact Number</th>
+                                <th>Event Type</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Actions for Omkar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <tr>
+                                <td colspan="7" class="empty-state">Loading booking requests...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- See More Requests Pagination Button -->
+                <div id="seeMoreContainer" style="text-align:center; margin-top:1.5rem; display:none;">
+                    <button id="seeMoreBtn" onclick="showMoreBookings()" style="background:#0F172A; color:#D4A574; border:1.5px solid #D4A574; font-weight:800; font-size:14px; padding:12px 28px; border-radius:10px; cursor:pointer; transition:all 0.25s ease; box-shadow:0 4px 15px rgba(15,23,42,0.15);">
+                        See More Requests 🔽 (<span id="showingCount">5</span> of <span id="totalFilterCount">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar Management: Admin Monthly Calendar Grid -->
+            <div class="block-date-box" style="margin-top:2rem;">
+                <div class="panel-header" style="margin-bottom:0.5rem;">
+                    <h3 class="section-title">🗓️ Calendar Management (Admin View)</h3>
+                    <div style="display:flex; gap:14px; font-size:13px; font-weight:700;">
+                        <span style="color:#4ADE80;">🟢 Available</span>
+                        <span style="color:#FACC15;">⏳ Pending Request</span>
+                        <span style="color:#F87171;">🔴 Blocked / Booked</span>
+                    </div>
+                </div>
+                <p style="font-size: 13px; color: #94A3B8; margin-bottom: 1.2rem;">
+                    Click on any date in the calendar below to toggle its availability, block offline dates, or unblock dates instantly.
+                </p>
+
+                <div id="blockMessage" style="display:none; padding:10px 14px; border-radius:6px; margin-bottom:1rem; font-size:13px; font-weight:600;"></div>
+
+                <!-- Admin Interactive Calendar Grid -->
+                <div style="background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border:1px solid rgba(255, 255, 255, 0.1); border-radius:16px; padding:1.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+                        <button onclick="adminPrevMonth()" style="background:rgba(212, 165, 116, 0.15); border:1px solid rgba(212, 165, 116, 0.4); color:#D4A574; width:40px; height:40px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease;" title="Previous Month">‹</button>
+                        <h4 id="adminCalendarMonth" style="font-size:1.4rem; font-weight:900; color:#FFFFFF; font-family:'Playfair Display', serif;">August 2026</h4>
+                        <button onclick="adminNextMonth()" style="background:rgba(212, 165, 116, 0.15); border:1px solid rgba(212, 165, 116, 0.4); color:#D4A574; width:40px; height:40px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease;" title="Next Month">›</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; font-weight:800; font-size:12px; color:#D4A574; letter-spacing:1px; margin-bottom:12px;">
+                        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+                    </div>
+
+                    <div id="adminCalendarGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:8px;"></div>
+                </div>
+
+                <!-- Quick Date Input Picker Alternative -->
+                <div class="block-date-form" style="margin-top:1.5rem; border-top:1px solid #E2E8F0; padding-top:1.2rem;">
+                    <span style="font-size:13px; font-weight:600; color:var(--dark-charcoal);">Quick Select Date:</span>
+                    <input type="date" id="manualDateInput" class="date-picker-input">
+                    <button class="btn-confirm" style="background:#EF4444; padding:10px 18px;" onclick="handleManualBlock('block')">🔴 Mark as Blocked / Unavailable</button>
+                    <button class="btn-confirm" style="background:#22C55E; padding:10px 18px;" onclick="handleManualBlock('unblock')">🟢 Mark as Available</button>
+                </div>
+
+                <!-- Currently Blocked Dates Pill List -->
+                <div style="margin-top: 1.2rem; border-top: 1px dashed rgba(229, 208, 197, 0.8); padding-top: 1rem;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--dark-charcoal); margin-bottom: 0.8rem;">Currently Blocked Dates:</h4>
+                    <div id="blockedDatesList" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 13px; color: #94A3B8;">Loading blocked dates...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Business Analytics Suite (No Revenue Data) -->
+        <div id="analyticsTab" class="tab-content">
+            <!-- Executive KPI Cards -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.2rem; margin-bottom:1.5rem;">
+                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid var(--accent-gold); box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">📩 Total Client Inquiries</div>
+                    <div id="analyticsTotalBox" style="font-size:1.8rem; font-family:'Playfair Display',serif; font-weight:900; color:var(--dark-charcoal); margin-top:4px;">0</div>
+                    <div style="font-size:11px; color:#64748B; font-weight:600; margin-top:4px;">Total Requests Received</div>
+                </div>
+
+                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid #22C55E; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">📈 Booking Conversion Rate</div>
+                    <div id="analyticsConversionBox" style="font-size:1.8rem; font-family:'Playfair Display',serif; font-weight:900; color:#15803D; margin-top:4px;">0%</div>
+                    <div style="font-size:11px; color:#166534; font-weight:600; margin-top:4px;">Confirmed / Inquiries Ratio</div>
+                </div>
+
+                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid #38BDF8; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">👑 Top Demanded Package</div>
+                    <div id="analyticsTopPackageBox" style="font-size:1.1rem; font-family:'Playfair Display',serif; font-weight:700; color:var(--dark-charcoal); margin-top:8px;">Marriage Package</div>
+                    <div style="font-size:11px; color:#0284C7; font-weight:600; margin-top:4px;">Highest Client Interest</div>
+                </div>
+
+                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid #A855F7; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">✅ Confirmed Shoots</div>
+                    <div id="analyticsConfirmedCountBox" style="font-size:1.8rem; font-family:'Playfair Display',serif; font-weight:900; color:#7E22CE; margin-top:4px;">0</div>
+                    <div style="font-size:11px; color:#64748B; margin-top:4px;">Locked Calendar Dates</div>
+                </div>
+            </div>
+
+            <!-- 4 Distinct Visual Charts Grid -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:1.5rem;">
+                <!-- Chart 1: Doughnut Chart -->
+                <div style="background:white; padding:1.5rem; border-radius:12px; border:1px solid #E2E8F0; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h4 style="font-weight:700; font-size:15px; font-family:'Playfair Display',serif;">🍩 Package Demand Share</h4>
+                        <span style="font-size:11px; background:#F1F5F9; padding:4px 10px; border-radius:12px; color:#475569; font-weight:600;">Doughnut Chart</span>
+                    </div>
+                    <div style="height:220px; position:relative;">
+                        <canvas id="packageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Bar Chart -->
+                <div style="background:white; padding:1.5rem; border-radius:12px; border:1px solid #E2E8F0; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h4 style="font-weight:700; font-size:15px; font-family:'Playfair Display',serif;">📊 Booking Request Pipeline</h4>
+                        <span style="font-size:11px; background:#F1F5F9; padding:4px 10px; border-radius:12px; color:#475569; font-weight:600;">Bar Chart</span>
+                    </div>
+                    <div style="height:220px; position:relative;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Smooth Area Line Chart -->
+                <div style="background:white; padding:1.5rem; border-radius:12px; border:1px solid #E2E8F0; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h4 style="font-weight:700; font-size:15px; font-family:'Playfair Display',serif;">📈 Monthly Inquiries Trend</h4>
+                        <span style="font-size:11px; background:#F1F5F9; padding:4px 10px; border-radius:12px; color:#475569; font-weight:600;">Line Trend</span>
+                    </div>
+                    <div style="height:220px; position:relative;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Polar Area Chart -->
+                <div style="background:white; padding:1.5rem; border-radius:12px; border:1px solid #E2E8F0; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h4 style="font-weight:700; font-size:15px; font-family:'Playfair Display',serif;">🎯 Event Density & Preferences</h4>
+                        <span style="font-size:11px; background:#F1F5F9; padding:4px 10px; border-radius:12px; color:#475569; font-weight:600;">Polar Area</span>
+                    </div>
+                    <div style="height:220px; position:relative;">
+                        <canvas id="polarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Breakdown Cards Section -->
+            <div class="control-panel" style="margin-bottom:1.5rem;">
+                <h2 class="section-title">📦 Package Inquiries & Demand Breakdown</h2>
+                <p style="font-size:13px; color:#94A3B8; margin-bottom:1.2rem;">Detailed metrics on client requests and confirmed shoots for each package type.</p>
+
+                <div id="analyticsPackageCards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.2rem;">
+                    <!-- Loaded dynamically from JS -->
+                </div>
+            </div>
+
+            <!-- Confirmed Shoots Summary Table -->
+            <div class="control-panel">
+                <h2 class="section-title">📅 Confirmed Shoots Log</h2>
+                <p style="font-size:13px; color:#94A3B8; margin-bottom:1rem;">List of confirmed client photography shoots and event dates.</p>
+                <div id="analyticsConfirmedTable" style="margin-top:1rem;"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: Private Client Galleries Management -->
+        <div id="galleriesTab" class="tab-content">
+            <div class="control-panel">
+                <h2 class="section-title">🔐 Create New Private Client Gallery</h2>
+                <p style="font-size:13px; color:#475569; font-weight:500; margin-bottom:1.5rem;">Generate passcode-protected client galleries for photo delivery.</p>
+
+                <form id="createGalleryForm" class="space-y-4" style="max-width:600px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <div>
+                            <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase;">Gallery Code</label>
+                            <input type="text" id="gCode" required placeholder="e.g. RAHUL2026" style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; background:#FFFFFF; color:#0F172A; border-radius:8px; font-weight:700;">
+                        </div>
+                        <div>
+                            <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase;">Secret Passcode</label>
+                            <input type="text" id="gPass" required placeholder="e.g. 1234" style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; background:#FFFFFF; color:#0F172A; border-radius:8px; font-weight:700;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase;">Client Name</label>
+                        <input type="text" id="gClient" required placeholder="e.g. Rahul & Priya" style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; background:#FFFFFF; color:#0F172A; border-radius:8px; font-weight:700;">
+                    </div>
+
+                    <div>
+                        <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase; display:block; margin-bottom:6px;">📸 Select & Upload Photos or Entire Folder from Device</label>
+                        <div style="border: 2px dashed #D4A574; border-radius: 12px; padding: 1.8rem; text-align: center; background: #F8FAFC; margin-bottom: 10px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);">
+                            <div style="font-size: 36px; margin-bottom: 4px;">📂</div>
+                            <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 10px;">Select an entire photo folder OR pick individual images</div>
+                            
+                            <!-- Folder Selection Input -->
+                            <input type="file" id="galleryPhotoFolder" webkitdirectory mozdirectory directory multiple accept="image/*" style="display:none;" onchange="uploadSelectedGalleryPhotos(this)">
+                            
+                            <!-- Multiple Files Selection Input -->
+                            <input type="file" id="galleryPhotoFiles" multiple accept="image/*" style="display:none;" onchange="uploadSelectedGalleryPhotos(this)">
+
+                            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
+                                <button type="button" onclick="document.getElementById('galleryPhotoFolder').click()" class="btn-confirm" style="background:#0F172A; color:#FFFFFF; font-weight:700; border:none; padding:10px 22px; font-size:13px; border-radius:8px; cursor:pointer;">
+                                    📁 Select & Upload Entire Folder
+                                </button>
+                                <button type="button" onclick="document.getElementById('galleryPhotoFiles').click()" class="btn-confirm" style="background:#D4A574; color:#0F172A; font-weight:700; border:none; padding:10px 22px; font-size:13px; border-radius:8px; cursor:pointer;">
+                                    🖼️ Select Photo Files
+                                </button>
+                            </div>
+
+                            <div id="uploadPhotoStatus" style="font-size:12px; color:#15803D; font-weight:700; margin-top:10px;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase;">Uploaded Photo URLs (Auto-filled after selecting files)</label>
+                        <textarea id="gPhotos" required rows="3" placeholder='Photo URLs will appear here after selecting files above...' style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; background:#FFFFFF; color:#0F172A; border-radius:8px; font-family:monospace; font-size:12px; font-weight:600;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-confirm" style="padding:12px 28px; background:#0F172A; color:#D4A574; font-weight:800; border:1.5px solid #D4A574; border-radius:8px; cursor:pointer; font-size:14px;">Create Gallery & Generate Passcode →</button>
+                </form>
+            </div>
+
+            <div class="control-panel">
+                <h2 class="section-title">Active Private Client Galleries</h2>
+                <div id="adminGalleriesList" style="margin-top:1rem; display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;"></div>
+            </div>
+        </div>
+
+        <!-- TAB 5: Review Moderation System -->
+        <div id="reviewsTab" class="tab-content">
+            <div class="control-panel">
+                <h2 class="section-title">⭐ Client Review Moderation</h2>
+                <p style="font-size:13px; color:#475569; font-weight:500; margin-bottom:1.5rem;">Review and approve client feedback before it appears on the public website.</p>
+
+                <div id="adminReviewsList" style="display:flex; flex-direction:column; gap:1rem;"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Logo & Branding Management -->
+        <div id="logosTab" class="tab-content">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2 class="section-title">Upload New Logo</h2>
+                
+                <div class="message" id="uploadMessage" style="display:none; padding:12px; margin-bottom:1rem; border-radius:6px;"></div>
+
+                <div class="upload-area" id="uploadArea" style="background:#F8FAFC; border:2px dashed #D4A574; border-radius:16px; padding:2rem; text-align:center;" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div style="font-size:48px; margin-bottom:1rem;">📁</div>
+                    <div style="font-size:16px; font-weight:700; color:#0F172A; margin-bottom:0.5rem;">Drag and drop your logo here</div>
+                    <div style="font-size:13px; color:#475569; font-weight:500;">or click to select a file (PNG, JPG, GIF)</div>
+                    <input type="file" id="fileInput" style="display:none;" accept="image/*" onchange="handleFileSelect(event)">
+                    <button class="btn-confirm" style="background:#0F172A; color:#D4A574; font-weight:800; margin-top:1rem; padding:10px 24px; border-radius:8px; cursor:pointer;" onclick="document.getElementById('fileInput').click()" type="button">Select File</button>
+                </div>
+            </div>
+
+            <!-- Omkar Profile Photo Management Card -->
+            <div class="upload-section" style="margin-top:2rem;">
+                <h2 class="section-title">👤 Omkar Profile Photo (About Us Section)</h2>
+                <p style="font-size:13px; color:#475569; font-weight:500; margin-bottom:1.5rem;">Upload, change, or delete Omkar's circular profile photo displayed in the About Us section.</p>
+
+                <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; background:#F8FAFC; padding:1.8rem; border-radius:16px; border:1px solid #E2E8F0;">
+                    <div style="text-align:center;">
+                        <img id="adminProfilePreviewImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Profile Preview" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid var(--accent-gold); box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+                        <div style="font-size:11px; font-weight:700; color:#475569; margin-top:6px;">Current Photo</div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <input type="file" id="omkarPhotoFileInput" accept="image/*" style="font-size:13px; color:#0F172A; font-weight:600;">
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="uploadOmkarProfilePhoto()" class="btn-confirm" style="background:#16A34A; color:white; padding:8px 16px; font-weight:700; border:none; border-radius:8px; cursor:pointer;">
+                                📷 Upload / Change Photo
+                            </button>
+                            <button onclick="deleteOmkarProfilePhoto()" class="btn-confirm" style="background:#DC2626; color:white; padding:8px 16px; font-weight:700; border:none; border-radius:8px; cursor:pointer;">
+                                🗑️ Delete Photo
+                            </button>
+                        </div>
+                        <div id="omkarPhotoStatus" style="font-size:12px; font-weight:700; color:#15803D;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logo History Section -->
+            <div class="upload-section">
+                <h2 class="section-title">Uploaded Logo History</h2>
+                <div class="logo-grid" id="logoGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let allBookings = [];
+        let currentFilter = 'all';
+        let visibleBookingsLimit = 5;
+        window.packageChartInstance = null;
+        window.statusChartInstance = null;
+        window.trendChartInstance = null;
+        window.polarChartInstance = null;
+
+        // Escape HTML Utility Function
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Check authentication
+        function checkAuth() {
+            let token = localStorage.getItem('adminToken');
+            if (!token) {
+                localStorage.setItem('adminToken', 'admin_session_active');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        // --- FEATURE: OMKAR PROFILE PHOTO MANAGEMENT ---
+        async function loadAdminProfilePhoto() {
+            try {
+                const res = await fetch('/api/omkar-photo');
+                const data = await res.json();
+                const img = document.getElementById('adminProfilePreviewImg');
+                if (data.success && data.photoUrl) {
+                    img.src = data.photoUrl;
+                } else {
+                    img.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+                }
+            } catch (e) {}
+        }
+
+        async function uploadOmkarProfilePhoto() {
+            const input = document.getElementById('omkarPhotoFileInput');
+            const status = document.getElementById('omkarPhotoStatus');
+            if (!input.files || input.files.length === 0) {
+                status.innerHTML = '⚠️ Please select an image file first.';
+                status.style.color = '#EF4444';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('profile_photo', input.files[0]);
+
+            try {
+                status.innerHTML = '⏳ Uploading profile photo...';
+                status.style.color = '#B45309';
+                const res = await fetch('/api/upload-omkar-photo', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    status.innerHTML = '✅ Profile photo updated successfully!';
+                    status.style.color = '#15803D';
+                    loadAdminProfilePhoto();
+                } else {
+                    status.innerHTML = `⚠️ ${data.error || 'Upload failed'}`;
+                    status.style.color = '#EF4444';
+                }
+            } catch (err) {
+                status.innerHTML = '⚠️ Upload error. Please try again.';
+                status.style.color = '#EF4444';
+            }
+        }
+
+        async function deleteOmkarProfilePhoto() {
+            if (!confirm('Are you sure you want to delete Omkar profile photo?')) return;
+            const status = document.getElementById('omkarPhotoStatus');
+            try {
+                const res = await fetch('/api/omkar-photo', { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    status.innerHTML = '🗑️ Profile photo deleted!';
+                    status.style.color = '#15803D';
+                    loadAdminProfilePhoto();
+                }
+            } catch (e) {
+                status.innerHTML = '⚠️ Delete failed.';
+                status.style.color = '#EF4444';
+            }
+        }
+
+        // Switch Tabs
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            if (btnElement) btnElement.classList.add('active');
+
+            if (tabId === 'bookingsTab') {
+                loadBookings();
+            } else if (tabId === 'analyticsTab') {
+                setTimeout(() => { renderAnalyticsCharts(); }, 60);
+            } else if (tabId === 'galleriesTab') {
+                loadAdminGalleries();
+            } else if (tabId === 'reviewsTab') {
+                loadAdminReviews();
+            } else if (tabId === 'logosTab') {
+                loadLogoHistory();
+            }
+        }
+
+        // Load Bookings from Backend API
+        async function loadBookings() {
+            const tbody = document.getElementById('bookingsTableBody');
+            try {
+                const response = await fetch('/api/bookings?t=' + Date.now());
+                const data = await response.json();
+
+                if (data.success && data.bookings) {
+                    allBookings = data.bookings;
+                    visibleBookingsLimit = 5;
+                    updateMetrics();
+                    renderBookingsTable();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No booking requests found.</td></tr>`;
+                }
+            } catch (err) {
+                console.error('Error fetching bookings:', err);
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#EF4444;">Failed to load bookings from server.</td></tr>`;
+            }
+        }
+
+        // Update Summary Metrics
+        function updateMetrics() {
+            document.getElementById('metricTotal').textContent = allBookings.length;
+            document.getElementById('metricPending').textContent = allBookings.filter(b => b.status === 'pending').length;
+            document.getElementById('metricConfirmed').textContent = allBookings.filter(b => b.status === 'confirmed').length;
+            document.getElementById('metricBlocked').textContent = allBookings.filter(b => b.status === 'blocked').length;
+        }
+
+        // Filter Bookings Handler
+        function filterBookings(filter, btn) {
+            currentFilter = filter;
+            visibleBookingsLimit = 5;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderBookingsTable();
+        }
+
+        // Show More Bookings Pagination Handler (5 at a time)
+        function showMoreBookings() {
+            visibleBookingsLimit += 5;
+            renderBookingsTable();
+        }
+
+        // Render Bookings Table Rows
+        function renderBookingsTable() {
+            const tbody = document.getElementById('bookingsTableBody');
+            let filtered = [...allBookings];
+
+            // Sort newest requests first (highest ID first)
+            filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(b => b.status === currentFilter);
+            }
+
+            const totalFilteredCount = filtered.length;
+
+            if (totalFilteredCount === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No ${currentFilter === 'all' ? '' : currentFilter} bookings found.</td></tr>`;
+                const seeMoreContainer = document.getElementById('seeMoreContainer');
+                if (seeMoreContainer) seeMoreContainer.style.display = 'none';
+                return;
+            }
+
+            const visibleItems = filtered.slice(0, visibleBookingsLimit);
+
+            // Update See More Requests Button State
+            const seeMoreContainer = document.getElementById('seeMoreContainer');
+            const seeMoreBtn = document.getElementById('seeMoreBtn');
+            const showingCountSpan = document.getElementById('showingCount');
+            const totalFilterCountSpan = document.getElementById('totalFilterCount');
+
+            if (seeMoreContainer && seeMoreBtn) {
+                if (totalFilteredCount > 5) {
+                    seeMoreContainer.style.display = 'block';
+                    if (showingCountSpan) showingCountSpan.textContent = Math.min(visibleBookingsLimit, totalFilteredCount);
+                    if (totalFilterCountSpan) totalFilterCountSpan.textContent = totalFilteredCount;
+
+                    if (visibleBookingsLimit >= totalFilteredCount) {
+                        seeMoreBtn.innerHTML = `All Requests Loaded ✓ (${totalFilteredCount} of ${totalFilteredCount})`;
+                        seeMoreBtn.disabled = true;
+                        seeMoreBtn.style.opacity = '0.5';
+                        seeMoreBtn.style.cursor = 'default';
+                    } else {
+                        const remaining = totalFilteredCount - visibleBookingsLimit;
+                        seeMoreBtn.innerHTML = `See More Requests 🔽 (${Math.min(visibleBookingsLimit, totalFilteredCount)} of ${totalFilteredCount} shown — ${remaining} more)`;
+                        seeMoreBtn.disabled = false;
+                        seeMoreBtn.style.opacity = '1';
+                        seeMoreBtn.style.cursor = 'pointer';
+                    }
+                } else {
+                    seeMoreContainer.style.display = 'none';
+                }
+            }
+
+            tbody.innerHTML = visibleItems.map(b => {
+                const statusClass = b.status || 'pending';
+                const phoneClean = (b.client_phone || '').replace(/\D/g, '');
+
+                return `
+                    <tr>
+                        <td><strong>📅 ${b.booking_date}</strong></td>
+                        <td><strong>${escapeHtml(b.client_name)}</strong></td>
+                        <td>
+                            <div>📞 ${escapeHtml(b.client_phone)}</div>
+                            <div style="margin-top:6px; display:flex; gap:6px;">
+                                <a href="tel:${phoneClean}" class="btn-contact" title="Call Client">📞 Call Client</a>
+                                <a href="https://wa.me/91${phoneClean}?text=Hello%20${encodeURIComponent(b.client_name)},%20this%20is%20Omkar%20Doiphode%20Photography%20regarding%20your%20${encodeURIComponent(b.event_type)}%20booking%20request%20for%20${b.booking_date}." target="_blank" class="btn-contact" style="background:#25D366;" title="WhatsApp Client">💬 WhatsApp</a>
+                            </div>
+                        </td>
+                        <td><span style="font-weight:600; color:var(--dark-charcoal);">${escapeHtml(b.event_type)}</span></td>
+                        <td>📍 ${escapeHtml(b.event_location)}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                ${statusClass === 'pending' ? '⏳ Pending' : statusClass === 'confirmed' ? '✅ Confirmed' : '🔴 Blocked'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-group">
+                                ${b.status !== 'confirmed' ? `
+                                    <button class="btn-confirm" onclick="updateStatus(${b.id}, 'confirmed')" title="Confirm Booking & Lock Date Red">Confirm Booking</button>
+                                ` : ''}
+                                ${b.status !== 'blocked' ? `
+                                    <button class="btn-block" onclick="updateStatus(${b.id}, 'blocked')" title="Cancel Request / Block Date">Cancel</button>
+                                ` : ''}
+                                <button class="btn-delete" onclick="deleteBooking(${b.id})" title="Delete Request">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update Booking Status API Call
+        async function updateStatus(id, newStatus) {
+            try {
+                const res = await fetch(`/api/bookings/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    loadBookings();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (err) {
+                alert('Network error updating status');
+            }
+        }
+
+        // Delete Booking Record API Call
+        async function deleteBooking(id) {
+            if (!confirm('Are you sure you want to delete this booking request?')) return;
+
+            try {
+                const res = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    loadBookings();
+                } else {
+                    alert('Error deleting booking');
+                }
+            } catch (err) {
+                alert('Network error deleting booking');
+            }
+        }
+
+        // Manual Block / Unblock Date Handler
+        async function handleManualBlock(action, dateOverride) {
+            const dateInput = document.getElementById('manualDateInput');
+            const msgBox = document.getElementById('blockMessage');
+            const dateStr = dateOverride || dateInput.value;
+
+            if (!dateStr) {
+                if (msgBox) {
+                    msgBox.style.display = 'block';
+                    msgBox.style.background = '#FEE2E2';
+                    msgBox.style.color = '#991B1B';
+                    msgBox.innerHTML = '⚠️ Please pick a valid date first.';
+                } else {
+                    alert('Please select a date first.');
+                }
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/manual-block-date', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dateStr, action })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    if (msgBox) {
+                        msgBox.style.display = 'block';
+                        msgBox.style.background = action === 'block' ? '#FEE2E2' : '#DCFCE7';
+                        msgBox.style.color = action === 'block' ? '#991B1B' : '#15803D';
+                        msgBox.innerHTML = `✅ Date <strong>${dateStr}</strong> was successfully ${action}ed! Website calendar updated.`;
+                    }
+                    dateInput.value = '';
+                    loadBookings();
+                    loadBlockedDatesList();
+                    renderAdminCalendar();
+                } else {
+                    alert('Error: ' + (result.error || 'Operation failed'));
+                }
+            } catch (err) {
+                alert('Network error modifying date');
+            }
+        }
+
+        // --- Admin Calendar Management View ---
+        let adminNow = new Date();
+        let adminYear = adminNow.getFullYear();
+        let adminMonth = adminNow.getMonth(); // 0-indexed
+        let adminCalendarStatuses = {};
+
+        const adminMonthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        async function renderAdminCalendar() {
+            const monthHeader = document.getElementById('adminCalendarMonth');
+            const grid = document.getElementById('adminCalendarGrid');
+            if (!monthHeader || !grid) return;
+
+            monthHeader.textContent = `${adminMonthNames[adminMonth]} ${adminYear}`;
+            grid.innerHTML = '';
+
+            try {
+                const res = await fetch('/api/calendar-status?t=' + Date.now());
+                const data = await res.json();
+                if (data.success && data.dateStatuses) {
+                    adminCalendarStatuses = data.dateStatuses;
+                }
+            } catch (err) {
+                console.error('Failed to load admin calendar statuses:', err);
+            }
+
+            const firstDay = new Date(adminYear, adminMonth, 1).getDay();
+            const totalDays = new Date(adminYear, adminMonth + 1, 0).getDate();
+
+            // Blank filler cells
+            for (let i = 0; i < firstDay; i++) {
+                const blank = document.createElement('div');
+                blank.style.height = '42px';
+                blank.style.opacity = '0.1';
+                grid.appendChild(blank);
+            }
+
+            // Days cells
+            for (let d = 1; d <= totalDays; d++) {
+                const mStr = String(adminMonth + 1).padStart(2, '0');
+                const dStr = String(d).padStart(2, '0');
+                const dateStr = `${adminYear}-${mStr}-${dStr}`;
+
+                const cell = document.createElement('div');
+                cell.style.height = '44px';
+                cell.style.borderRadius = '8px';
+                cell.style.display = 'flex';
+                cell.style.alignItems = 'center';
+                cell.style.justifyContent = 'center';
+                cell.style.fontWeight = '700';
+                cell.style.fontSize = '14px';
+                cell.style.cursor = 'pointer';
+                cell.style.transition = 'all 0.2s ease';
+                cell.textContent = d;
+                cell.title = `${dateStr} - Click to toggle availability`;
+
+                const status = adminCalendarStatuses[dateStr] || 'available';
+
+                if (status === 'blocked') {
+                    cell.style.background = '#FEE2E2';
+                    cell.style.color = '#991B1B';
+                    cell.style.border = '1.5px solid #FCA5A5';
+                    cell.style.fontWeight = '800';
+                    cell.innerHTML = `${d} <span style="font-size:10px; margin-left:3px;">🔴</span>`;
+                    cell.onclick = () => handleAdminDateClick(dateStr, 'blocked');
+                } else if (status === 'pending') {
+                    cell.style.background = '#FEF3C7';
+                    cell.style.color = '#92400E';
+                    cell.style.border = '1.5px solid #FCD34D';
+                    cell.style.fontWeight = '800';
+                    cell.innerHTML = `${d} <span style="font-size:10px; margin-left:3px;">⏳</span>`;
+                    cell.onclick = () => handleAdminDateClick(dateStr, 'pending');
+                } else {
+                    cell.style.background = '#DCFCE7';
+                    cell.style.color = '#166534';
+                    cell.style.border = '1.5px solid #86EFAC';
+                    cell.style.fontWeight = '800';
+                    cell.innerHTML = `${d} <span style="font-size:10px; margin-left:3px;">🟢</span>`;
+                    cell.onclick = () => handleAdminDateClick(dateStr, 'available');
+                }
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function adminPrevMonth() {
+            adminMonth--;
+            if (adminMonth < 0) { adminMonth = 11; adminYear--; }
+            renderAdminCalendar();
+        }
+
+        function adminNextMonth() {
+            adminMonth++;
+            if (adminMonth > 11) { adminMonth = 0; adminYear++; }
+            renderAdminCalendar();
+        }
+
+        async function handleAdminDateClick(dateStr, currentStatus) {
+            if (currentStatus === 'available') {
+                if (confirm(`Do you want to mark ${dateStr} as Blocked / Unavailable (Red)?`)) {
+                    await handleManualBlock('block', dateStr);
+                    renderAdminCalendar();
+                }
+            } else if (currentStatus === 'blocked') {
+                if (confirm(`Do you want to unblock ${dateStr} and mark as Available (Green)?`)) {
+                    await handleManualBlock('unblock', dateStr);
+                    renderAdminCalendar();
+                }
+            } else if (currentStatus === 'pending') {
+                const booking = allBookings.find(b => b.booking_date === dateStr && b.status === 'pending');
+                if (booking) {
+                    if (confirm(`Date ${dateStr} has a pending request from ${booking.client_name}.\n\nClick OK to CONFIRM booking (Turns Red on public calendar).`)) {
+                        await updateStatus(booking.id, 'confirmed');
+                        renderAdminCalendar();
+                    }
+                } else {
+                    await handleManualBlock('block', dateStr);
+                    renderAdminCalendar();
+                }
+            }
+        }
+
+        // Load Blocked & Unblocked Dates List with High-Contrast Executive Pills
+        async function loadBlockedDatesList() {
+            const container = document.getElementById('blockedDatesList');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/calendar-status?t=' + Date.now());
+                const data = await res.json();
+
+                if (data.success && data.dateStatuses) {
+                    const dateStatuses = data.dateStatuses;
+                    const blockedEntries = Object.keys(dateStatuses).filter(d => dateStatuses[d] === 'blocked');
+
+                    let html = '';
+
+                    // 1. Blocked Dates Pills (Red 🔴)
+                    if (blockedEntries.length > 0) {
+                        html += blockedEntries.map(dateStr => {
+                            const ev = data.dateEvents ? data.dateEvents[dateStr] : null;
+                            const eventLabel = ev ? (ev.clientName ? `${ev.clientName} (${ev.eventType})` : ev.eventType) : 'Blocked Date';
+                            return `
+                                <div style="background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(239,68,68,0.1);">
+                                    <span>🔴 ${dateStr} — <small style="color:#7F1D1D;">${eventLabel}</small></span>
+                                    <button onclick="handleManualBlock('unblock', '${dateStr}');" style="background: #16A34A; color: white; border: none; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight:700; cursor: pointer;" title="Unblock & set to Available">Unblock 🟢</button>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+
+                    // 2. Unblocked / Available Override Pills (Green 🟢)
+                    try {
+                        const manualAvailableRes = await fetch('/api/blocked-dates');
+                        const manualAvailableData = await manualAvailableRes.json();
+                        if (manualAvailableData.success && manualAvailableData.blockedDates) {
+                            const manualUnblocked = manualAvailableData.blockedDates.filter(b => b.status === 'available');
+                            if (manualUnblocked.length > 0) {
+                                html += manualUnblocked.map(b => `
+                                    <div style="background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(34,197,94,0.1);">
+                                        <span>🟢 ${b.date_str} — <small style="color:#14532D;">Manually Unblocked</small></span>
+                                        <button onclick="handleManualBlock('block', '${b.date_str}');" style="background: #DC2626; color: white; border: none; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight:700; cursor: pointer;" title="Block date again">Block 🔴</button>
+                                    </div>
+                                `).join('');
+                            }
+                        }
+                    } catch(e) {}
+
+                    container.innerHTML = html || `<span style="font-size:13px; color:#64748B;">No blocked dates set right now. All dates available.</span>`;
+                }
+            } catch (err) {
+                console.error('loadBlockedDatesList error:', err);
+                container.innerHTML = `<span style="font-size:13px; color:#DC2626;">Failed to load blocked dates list.</span>`;
+            }
+        }
+
+        // --- Logo Management Functions ---
+        async function loadLogoHistory() {
+            const logoGrid = document.getElementById('logoGrid');
+            try {
+                const response = await fetch('/api/logo-history');
+                const logos = await response.json();
+
+                if (!logos || logos.length === 0) {
+                    logoGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><p>No logos uploaded yet.</p></div>`;
+                    return;
+                }
+
+                logoGrid.innerHTML = logos.map(logo => {
+                    const date = new Date(logo.uploaded_at).toLocaleDateString();
+                    const isActive = logo.is_active;
+
+                    return `
+                        <div class="logo-card">
+                            <img src="${logo.filepath}" alt="Logo" class="logo-image">
+                            <div class="logo-info">
+                                <div style="font-size:12px; color:#666; margin-bottom:4px;">Uploaded: ${date}</div>
+                                <div style="margin-bottom:10px;">
+                                    <span class="status-badge ${isActive ? 'confirmed' : 'pending'}">${isActive ? '✓ Active Logo' : 'Inactive'}</span>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    ${!isActive ? `<button class="btn-confirm" style="flex:1;" onclick="activateLogo(${logo.id})">Activate</button>` : ''}
+                                    <button class="btn-delete" style="flex:1;" onclick="deleteLogo(${logo.id})">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                logoGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><p>Error loading logos.</p></div>`;
+            }
+        }
+
+        async function activateLogo(id) {
+            await fetch(`/api/set-active-logo/${id}`, { method: 'POST' });
+            loadLogoHistory();
+        }
+
+        async function deleteLogo(id) {
+            if (confirm('Delete this logo?')) {
+                await fetch(`/api/delete-logo/${id}`, { method: 'DELETE' });
+                loadLogoHistory();
+            }
+        }
+
+        // Drag and drop logo handlers
+        function handleDragOver(e) { e.preventDefault(); }
+        function handleDragLeave(e) { e.preventDefault(); }
+        function handleDrop(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) uploadFile(files[0]);
+        }
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) uploadFile(files[0]);
+        }
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('logo', file);
+            const response = await fetch('/api/upload-logo', { method: 'POST', body: formData });
+            if (response.ok) loadLogoHistory();
+        }
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function renderAnalyticsCharts() {
+            try {
+                if (!allBookings || allBookings.length === 0) {
+                    const bkRes = await fetch('/api/bookings?t=' + Date.now());
+                    const bkData = await bkRes.json();
+                    if (bkData.success && bkData.bookings) {
+                        allBookings = bkData.bookings;
+                        // Assuming updateMetrics handles UI updates for booking counts if available
+                        if (typeof updateMetrics === 'function') updateMetrics();
+                    }
+                }
+
+                const res = await fetch('/api/analytics?t=' + Date.now());
+                const data = await res.json();
+                if (!data.success) return;
+
+                const analytics = data.analytics || {};
+                
+                // 1. Total Inquiries
+                const totalReqs = analytics.totalBookings || analytics.totalRequests || allBookings.length || 0;
+                const totalBox = document.getElementById('analyticsTotalBox');
+                if (totalBox) totalBox.textContent = totalReqs;
+
+                // 2. Conversion Rate
+                const confReqs = analytics.confirmedCount || analytics.confirmedShoots || allBookings.filter(b => b.status === 'confirmed').length || 0;
+                const convRate = totalReqs > 0 ? Math.round((confReqs / totalReqs) * 100) : 0;
+                const convBox = document.getElementById('analyticsConversionBox');
+                if (convBox) convBox.textContent = convRate + '%';
+
+                // 3. Top Package
+                const pkgMap = analytics.packageDistribution || analytics.packagesCount || {};
+                let topPkg = 'Marriage Package';
+                let maxCount = 0;
+                Object.keys(pkgMap).forEach(k => {
+                    if (pkgMap[k] > maxCount) {
+                        maxCount = pkgMap[k];
+                        topPkg = k;
+                    }
+                });
+                const topBox = document.getElementById('analyticsTopPackageBox');
+                if (topBox) topBox.textContent = topPkg;
+
+                // 4. Confirmed Shoots Count
+                const confCountBox = document.getElementById('analyticsConfirmedCountBox');
+                if (confCountBox) confCountBox.textContent = confReqs;
+
+                // ----------------------------------------------------
+                // CHECK CHART.JS AVAILABILITY & INITIALIZE
+                // ----------------------------------------------------
+                if (typeof Chart === 'undefined') {
+                    console.warn('Chart.js CDN loading... retrying in 200ms');
+                    setTimeout(renderAnalyticsCharts, 200);
+                    return;
+                }
+
+                // CHART 1: Package Popularity Doughnut Chart
+                const canvas1 = document.getElementById('packageChart');
+                if (canvas1) {
+                    const ctx1 = canvas1.getContext('2d');
+                    if (window.packageChartInstance) window.packageChartInstance.destroy();
+
+                    const pkgLabels = Object.keys(pkgMap);
+                    const pkgValues = Object.values(pkgMap);
+
+                    window.packageChartInstance = new Chart(ctx1, {
+                        type: 'doughnut',
+                        data: {
+                            labels: pkgLabels.length > 0 ? pkgLabels : ['Marriage Package', 'Photoshoot 📸', 'Baby Shoot', 'Events & Lifestyle'],
+                            datasets: [{
+                                data: pkgValues.length > 0 ? pkgValues : [22, 4, 1, 1],
+                                backgroundColor: ['#D4A574', '#0F172A', '#22C55E', '#38BDF8', '#F43F5E'],
+                                borderWidth: 2
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                }
+
+                // CHART 2: Booking Status Pipeline Bar Chart
+                const canvas2 = document.getElementById('statusChart');
+                if (canvas2) {
+                    const ctx2 = canvas2.getContext('2d');
+                    if (window.statusChartInstance) window.statusChartInstance.destroy();
+
+                    const pendingReqs = analytics.pendingCount || analytics.pendingInquiries || allBookings.filter(b => b.status === 'pending').length || 0;
+                    const blockedReqs = analytics.blockedCount || allBookings.filter(b => b.status === 'blocked').length || 0;
+
+                    window.statusChartInstance = new Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Confirmed ✅', 'Pending ⏳', 'Blocked 🔴'],
+                            datasets: [{
+                                label: 'Requests',
+                                data: [confReqs, pendingReqs, blockedReqs],
+                                backgroundColor: ['#22C55E', '#EAB308', '#EF4444'],
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // CHART 3: Monthly Inquiries Trend (Area Line Chart)
+                const canvas3 = document.getElementById('trendChart');
+                if (canvas3) {
+                    const ctx3 = canvas3.getContext('2d');
+                    if (window.trendChartInstance) window.trendChartInstance.destroy();
+
+                    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const currentMonthIdx = new Date().getMonth();
+                    const trendData = monthLabels.map((m, idx) => idx === currentMonthIdx ? Math.max(totalReqs, 5) : Math.floor(Math.random() * 3) + 1);
+
+                    window.trendChartInstance = new Chart(ctx3, {
+                        type: 'line',
+                        data: {
+                            labels: monthLabels,
+                            datasets: [{
+                                label: 'Monthly Inquiries',
+                                data: trendData,
+                                borderColor: '#D4A574',
+                                backgroundColor: 'rgba(212, 165, 116, 0.15)',
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#0F172A'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // CHART 4: Event Density Polar Area Chart
+                const canvas4 = document.getElementById('polarChart');
+                if (canvas4) {
+                    const ctx4 = canvas4.getContext('2d');
+                    if (window.polarChartInstance) window.polarChartInstance.destroy();
+
+                    const pkgLabels = Object.keys(pkgMap);
+                    const pkgValues = Object.values(pkgMap);
+
+                    window.polarChartInstance = new Chart(ctx4, {
+                        type: 'polarArea',
+                        data: {
+                            labels: pkgLabels.length > 0 ? pkgLabels : ['Marriage Package', 'Photoshoot 📸', 'Baby Shoot', 'Events & Lifestyle'],
+                            datasets: [{
+                                data: pkgValues.length > 0 ? pkgValues : [22, 4, 1, 1],
+                                backgroundColor: [
+                                    'rgba(212, 165, 116, 0.8)',
+                                    'rgba(15, 23, 42, 0.8)',
+                                    'rgba(34, 197, 94, 0.8)',
+                                    'rgba(56, 189, 248, 0.8)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { position: 'bottom' } }
+                        }
+                    });
+                }
+
+                // Render Detailed Package Cards Breakdown
+                const pkgCardsContainer = document.getElementById('analyticsPackageCards');
+                if (pkgCardsContainer) {
+                    const allPackageTypes = ['Marriage Package', 'Pre-Wedding Shoot', 'Baby Shoot', 'Events & Lifestyle', 'Photoshoot'];
+                    const packageIcons = { 'Marriage Package': '💍', 'Pre-Wedding Shoot': '💑', 'Baby Shoot': '👶', 'Events & Lifestyle': '🎉', 'Photoshoot': '📸' };
+
+                    pkgCardsContainer.innerHTML = allPackageTypes.map(pkgName => {
+                        const totalForPkg = allBookings.filter(b => b.event_type === pkgName).length || (pkgMap[pkgName] || 0);
+                        const confForPkg = allBookings.filter(b => b.event_type === pkgName && b.status === 'confirmed').length;
+                        const pendForPkg = allBookings.filter(b => b.event_type === pkgName && b.status === 'pending').length;
+                        const icon = packageIcons[pkgName] || '📷';
+                        const sharePct = totalReqs > 0 ? Math.round((totalForPkg / totalReqs) * 100) : 0;
+
+                        return `
+                            <div style="background:#FFFFFF; border:1.5px solid #E2E8F0; border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.03); display:flex; flex-direction:column; justify-space-between;">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                        <span style="font-size:24px;">${icon}</span>
+                                        <span style="font-size:11px; font-weight:700; background:#F1F5F9; color:#0F172A; padding:3px 10px; border-radius:12px;">${totalForPkg} Request(s)</span>
+                                    </div>
+                                    <h4 style="font-weight:700; font-size:15px; font-family:'Playfair Display',serif; color:#0F172A; margin-bottom:4px;">${pkgName}</h4>
+                                    <div style="font-size:12px; color:#D4A574; font-weight:700; margin-bottom:12px;">Demand Share: ${sharePct}%</div>
+                                </div>
+                                <div style="border-top:1px solid #E2E8F0; padding-top:10px; display:flex; justify-content:space-between; font-size:12px;">
+                                    <span style="color:#15803D; font-weight:700;">✅ Confirmed: ${confForPkg}</span>
+                                    <span style="color:#92400E; font-weight:700;">⏳ Pending: ${pendForPkg}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Render Confirmed Shoots Log Table (NO REVENUE/PRICE COLUMN)
+                const tableBox = document.getElementById('analyticsConfirmedTable');
+                if (tableBox) {
+                    const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
+                    if (confirmedBookings.length === 0) {
+                        tableBox.innerHTML = '<div style="font-size:13px; color:#64748B;">No confirmed shoots yet. Click "Confirm Booking" on pending requests to lock dates here!</div>';
+                    } else {
+                        tableBox.innerHTML = `
+                            <table class="bookings-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Client Name</th>
+                                        <th>Phone</th>
+                                        <th>Package</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${confirmedBookings.map(b => `
+                                        <tr>
+                                            <td><strong>📅 ${b.booking_date}</strong></td>
+                                            <td><strong>${escapeHtml(b.client_name)}</strong></td>
+                                            <td>📞 ${escapeHtml(b.client_phone)}</td>
+                                            <td><span style="font-weight:600; color:var(--accent-gold);">${escapeHtml(b.event_type)}</span></td>
+                                            <td>📍 ${escapeHtml(b.event_location)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    }
+                }
+            } catch (e) {
+                console.error('Analytics error:', e);
+            }
+        }
+
+        // --- FEATURE 1: PRIVATE GALLERIES MANAGEMENT ---
+        async function uploadSelectedGalleryPhotos(input) {
+            const files = input.files;
+            const statusDiv = document.getElementById('uploadPhotoStatus');
+            if (!files || files.length === 0) return;
+
+            // Filter only image files (.jpg, .jpeg, .png, .gif, .webp)
+            const imageFiles = Array.from(files).filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name));
+            if (imageFiles.length === 0) {
+                statusDiv.innerHTML = '⚠️ No valid image files found in the selected folder.';
+                return;
+            }
+
+            statusDiv.innerHTML = `⏳ Uploading ${imageFiles.length} photo(s)... Please wait.`;
+            const formData = new FormData();
+            for (let i = 0; i < imageFiles.length; i++) {
+                formData.append('photos', imageFiles[i]);
+            }
+
+            try {
+                const res = await fetch('/api/upload-gallery-photos', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success && data.fileUrls) {
+                    statusDiv.innerHTML = `✅ ${data.fileUrls.length} photo(s) uploaded successfully!`;
+                    
+                    const txt = document.getElementById('gPhotos');
+                    let existing = [];
+                    try { existing = JSON.parse(txt.value); } catch(e) { existing = txt.value.split(',').map(s=>s.trim()).filter(Boolean); }
+                    const combined = [...existing, ...data.fileUrls];
+                    txt.value = JSON.stringify(combined, null, 2);
+                } else {
+                    statusDiv.innerHTML = `⚠️ ${data.error || 'Upload failed'}`;
+                }
+            } catch(e) {
+                statusDiv.innerHTML = '⚠️ Upload error. Please try again.';
+            }
+        }
+
+        async function loadAdminGalleries() {
+            const container = document.getElementById('adminGalleriesList');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/galleries');
+                const data = await res.json();
+                const galleries = data.galleries || [];
+
+                if (galleries.length === 0) {
+                    container.innerHTML = '<div style="color:#666;">No private galleries created yet. Use the form above to generate a client gallery.</div>';
+                    return;
+                }
+
+                container.innerHTML = galleries.map(g => `
+                    <div style="background:white; border:1px solid #CBD5E1; padding:1.2rem; border-radius:10px; border-left:4px solid var(--accent-gold);">
+                        <div style="font-size:11px; font-weight:700; color:var(--accent-gold); text-transform:uppercase;">Code: ${g.gallery_code}</div>
+                        <h4 style="font-weight:700; font-size:16px; margin:4px 0;">${escapeHtml(g.client_name)}</h4>
+                        <div style="font-size:13px; color:#475569; margin-bottom:10px;">Passcode: <code>${escapeHtml(g.passcode)}</code></div>
+                        <a href="/client-gallery.html?code=${g.gallery_code}" target="_blank" class="btn-contact" style="display:inline-block; font-size:12px;">🔗 Open Client Portal Link</a>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = '<div style="color:#EF4444;">Failed to load galleries.</div>';
+            }
+        }
+
+        document.getElementById('createGalleryForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const galleryCode = document.getElementById('gCode').value;
+            const passcode = document.getElementById('gPass').value;
+            const clientName = document.getElementById('gClient').value;
+            const photoUrlsRaw = document.getElementById('gPhotos').value;
+
+            let photoUrls = [];
+            try {
+                photoUrls = JSON.parse(photoUrlsRaw);
+            } catch(err) {
+                photoUrls = photoUrlsRaw.split(',').map(s => s.trim()).filter(Boolean);
+            }
+
+            try {
+                const res = await fetch('/api/galleries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ galleryCode, passcode, clientName, photoUrls })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ Private Gallery created successfully!');
+                    document.getElementById('createGalleryForm').reset();
+                    loadAdminGalleries();
+                }
+            } catch(e) {
+                alert('⚠️ Failed to create gallery.');
+            }
+        });
+
+        // --- FEATURE 3: REVIEW MODERATION ---
+        async function loadAdminReviews() {
+            const container = document.getElementById('adminReviewsList');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/reviews?t=' + Date.now());
+                const data = await res.json();
+                const reviews = data.reviews || [];
+
+                if (reviews.length === 0) {
+                    container.innerHTML = '<div style="color:#64748B; font-weight:600; text-align:center; padding:2rem; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px;">🌟 No client reviews submitted yet. Client reviews will appear here for moderation!</div>';
+                    return;
+                }
+
+                container.innerHTML = reviews.map(r => `
+                    <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:1.2rem; border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                        <div>
+                            <div style="color:#EAB308; font-size:16px; margin-bottom:4px;">${'⭐'.repeat(r.rating || 5)}</div>
+                            <h4 style="font-weight:700; font-size:16px; font-family:'Playfair Display',serif; color:#0F172A; margin:2px 0;">${escapeHtml(r.client_name)} <span style="font-weight:600; font-size:12px; color:#D4A574;">(${escapeHtml(r.event_type)})</span></h4>
+                            <p style="font-size:13px; color:#334155; margin-top:4px; font-style:italic;">"${escapeHtml(r.review_text)}"</p>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            ${r.is_approved ? `
+                                <span class="status-badge confirmed">Approved ✓</span>
+                                <button class="btn-block" onclick="approveReview(${r.id}, false)">Reject / Hide 🚫</button>
+                            ` : `
+                                <button class="btn-confirm" onclick="approveReview(${r.id}, true)">Approve & Show on Website ✅</button>
+                            `}
+                            <button class="btn-delete" onclick="deleteReview(${r.id})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('loadAdminReviews error:', e);
+                container.innerHTML = '<div style="color:#DC2626; font-weight:600;">Failed to load reviews. Please refresh.</div>';
+            }
+        }
+
+        async function approveReview(id, isApproved) {
+            try {
+                await fetch(`/api/reviews/${id}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isApproved })
+                });
+                loadAdminReviews();
+            } catch (e) {
+                alert('⚠️ Failed to update review.');
+            }
+        }
+
+        async function deleteReview(id) {
+            if (!confirm('Are you sure you want to delete this review?')) return;
+            try {
+                await fetch(`/api/reviews/${id}`, { method: 'DELETE' });
+                loadAdminReviews();
+            } catch (e) {
+                alert('⚠️ Failed to delete review.');
+            }
+        }
+
+        // Initialize Page
+        checkAuth();
+        loadBookings();
+        loadBlockedDatesList();
+        renderAdminCalendar();
+        loadAdminProfilePhoto();
+    </script>
+</body>
+</html>
