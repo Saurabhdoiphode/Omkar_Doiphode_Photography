@@ -26,6 +26,19 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Route Aliases for Admin Panel & Client Gallery
+app.get(['/admin', '/admin-login', '/admin_login', '/admin-login.html', '/admin_login.html'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
+
+app.get(['/admin-dashboard', '/admin_dashboard', '/admin-dashboard.html', '/admin_dashboard.html', '/dashboard'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
+});
+
+app.get(['/client-gallery', '/client_gallery', '/client-gallery.html', '/client_gallery.html', '/gallery'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client-gallery.html'));
+});
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
