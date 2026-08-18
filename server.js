@@ -339,29 +339,37 @@ app.post('/api/login', (req, res) => {
     );
 });
 
-// 2. Upload Logo
+const memoryStorageJS = multer.memoryStorage();
+const uploadMemoryJS = multer({ storage: memoryStorageJS, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// 2. Upload Logo (Memory Storage Base64 Engine)
 app.post('/api/upload-logo', (req, res) => {
-    upload.single('logo')(req, res, (err) => {
+    uploadMemoryJS.single('logo')(req, res, (err) => {
         if (err || !req.file) {
-            return res.status(400).json({ success: false, error: 'No logo file provided or upload error' });
+            return res.status(400).json({ success: false, error: 'Please select a valid image file (PNG/JPG).' });
         }
 
-        const filename = req.file.filename;
-        const logoPath = '/uploads/logos/' + filename;
+        try {
+            const mime = req.file.mimetype || 'image/png';
+            const base64Data = req.file.buffer.toString('base64');
+            const logoPath = `data:${mime};base64,${base64Data}`;
 
-        db.run('UPDATE logos SET is_active = 0', () => {
-            db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], (dbErr) => {
-                if (dbErr) {
-                    return res.status(500).json({ success: false, error: 'Database error saving logo' });
-                }
-                res.json({ 
-                    success: true, 
-                    message: 'Logo uploaded and set as active successfully',
-                    logo_path: logoPath,
-                    filepath: logoPath 
+            db.run('UPDATE logos SET is_active = 0', () => {
+                db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], (dbErr) => {
+                    if (dbErr) {
+                        return res.status(500).json({ success: false, error: 'Database error saving logo' });
+                    }
+                    res.json({ 
+                        success: true, 
+                        message: 'Logo uploaded and set as active successfully',
+                        logo_path: logoPath,
+                        filepath: logoPath 
+                    });
                 });
             });
-        });
+        } catch (e) {
+            res.status(500).json({ success: false, error: 'Failed to process logo image' });
+        }
     });
 });
 
