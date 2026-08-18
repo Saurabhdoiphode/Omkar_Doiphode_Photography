@@ -723,11 +723,10 @@
             .admin-calendar-cell {
                 height: 38px !important;
                 font-size: 12px !important;
-                font-weight: 900 !important;
+                font-weight: 800 !important;
                 gap: 2px !important;
                 padding: 1px !important;
                 border-radius: 6px !important;
-                color: #FFFFFF !important;
             }
 
             .admin-calendar-cell .day-dot {
@@ -1615,27 +1614,24 @@
                 const status = adminCalendarStatuses[dateStr] || 'available';
 
                 if (status === 'blocked') {
-                    cell.style.background = '#991B1B';
-                    cell.style.color = '#FFFFFF';
+                    cell.style.background = '#FEE2E2';
+                    cell.style.color = '#991B1B';
                     cell.style.border = '1.5px solid #FCA5A5';
-                    cell.style.fontWeight = '900';
-                    cell.style.boxShadow = '0 2px 6px rgba(153, 27, 27, 0.4)';
+                    cell.style.fontWeight = '800';
                     cell.innerHTML = `<span>${d}</span><span class="day-dot">🔴</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'blocked');
                 } else if (status === 'pending') {
-                    cell.style.background = '#D97706';
-                    cell.style.color = '#FFFFFF';
+                    cell.style.background = '#FEF3C7';
+                    cell.style.color = '#92400E';
                     cell.style.border = '1.5px solid #FCD34D';
-                    cell.style.fontWeight = '900';
-                    cell.style.boxShadow = '0 2px 6px rgba(217, 119, 6, 0.4)';
+                    cell.style.fontWeight = '800';
                     cell.innerHTML = `<span>${d}</span><span class="day-dot">⏳</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'pending');
                 } else {
-                    cell.style.background = '#166534';
-                    cell.style.color = '#FFFFFF';
+                    cell.style.background = '#DCFCE7';
+                    cell.style.color = '#166534';
                     cell.style.border = '1.5px solid #86EFAC';
-                    cell.style.fontWeight = '900';
-                    cell.style.boxShadow = '0 2px 6px rgba(22, 101, 52, 0.4)';
+                    cell.style.fontWeight = '800';
                     cell.innerHTML = `<span>${d}</span><span class="day-dot">🟢</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'available');
                 }
