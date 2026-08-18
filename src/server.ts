@@ -280,6 +280,48 @@ try {
           }
         });
         localStore.save();
+      } else if (sql.includes('DELETE FROM bookings')) {
+        const idVal = args[0];
+        if (sql.includes('WHERE booking_date')) {
+          const dateVal = Array.isArray(args) ? args[0] : null;
+          const phoneVal = Array.isArray(args) ? args[1] : null;
+          localStore.data.bookings = localStore.data.bookings.filter(b =>
+            !(b.booking_date === dateVal && (!phoneVal || b.client_phone === phoneVal))
+          );
+        } else {
+          localStore.data.bookings = localStore.data.bookings.filter(b =>
+            String(b.id) !== String(idVal) && String(b.id) !== String(args[1])
+          );
+        }
+        localStore.save();
+      } else if (sql.includes('INTO blocked_dates')) {
+        const [dateStr, status, notes] = args;
+        if (dateStr) {
+          const existingIdx = localStore.data.blocked_dates.findIndex(bd => bd.date_str === dateStr);
+          const record = {
+            id: existingIdx >= 0 ? localStore.data.blocked_dates[existingIdx].id : Date.now(),
+            date_str: dateStr,
+            status: String(status || 'blocked'),
+            notes: String(notes || ''),
+            created_at: new Date().toISOString()
+          };
+          if (existingIdx >= 0) localStore.data.blocked_dates[existingIdx] = record;
+          else localStore.data.blocked_dates.push(record);
+          localStore.save();
+        }
+      } else if (sql.includes('UPDATE blocked_dates')) {
+        const dateStr = args[0];
+        const status = args[1];
+        localStore.data.blocked_dates.forEach(bd => {
+          if (bd.date_str === dateStr) bd.status = status;
+        });
+        localStore.save();
+      } else if (sql.includes('DELETE FROM blocked_dates')) {
+        const dateVal = args[0];
+        if (dateVal) {
+          localStore.data.blocked_dates = localStore.data.blocked_dates.filter(bd => bd.date_str !== dateVal);
+          localStore.save();
+        }
       } else if (sql.includes('INTO reviews')) {
         const [name, type, rating, text] = args;
         localStore.data.reviews.push({
@@ -1048,43 +1090,62 @@ app.post('/api/bookings/:id/status', async (req: Request, res: Response) => {
       await supabase.from('bookings').update({ status }).eq('id', id);
     } catch (e) {}
 
-    // Fetch booking details to get date and phone
-    db.get('SELECT booking_date, client_phone FROM bookings WHERE id = ? OR id = ?', [id, isNaN(numId) ? -1 : numId], async (err, row: any) => {
-      if (row) {
-        if (!bookingDate) bookingDate = row.booking_date;
-        if (!clientPhone) clientPhone = row.client_phone;
-      }
-
-      if (bookingDate && clientPhone) {
-        db.run('UPDATE bookings SET status = ? WHERE booking_date = ? AND client_phone = ?', [status, bookingDate, clientPhone]);
-        try {
-          await supabase.from('bookings').update({ status }).eq('booking_date', bookingDate).eq('client_phone', clientPhone);
-        } catch(e) {}
-      }
-
-      if ((status === 'confirmed' || status === 'blocked') && bookingDate) {
-        try {
-          await supabase.from('blocked_dates').upsert({ date_str: bookingDate, status: 'blocked', notes: 'Confirmed Booking' }, { onConflict: 'date_str' });
-        } catch(e) {}
-
-        db.run(
-          `INSERT INTO blocked_dates (date_str, status, notes) VALUES (?, 'blocked', 'Confirmed Booking')
-           ON CONFLICT(date_str) DO UPDATE SET status = 'blocked'`,
-          [bookingDate],
-          () => {
-            return res.json({ success: true, message: `Booking status updated to ${status}` });
-          }
-        );
-      } else {
-        if (bookingDate) {
-          try {
-            await supabase.from('blocked_dates').delete().eq('date_str', bookingDate);
-          } catch(e) {}
-          db.run('DELETE FROM blocked_dates WHERE date_str = ?', [bookingDate]);
+    // Fetch booking details (date + phone) so we can keep the calendar block list in sync — try Supabase first, then local SQLite/JSON store
+    if (!bookingDate || !clientPhone) {
+      try {
+        const { data: sbRow } = await supabase
+          .from('bookings')
+          .select('booking_date, client_phone')
+          .eq('id', id)
+          .maybeSingle();
+        if (sbRow) {
+          if (!bookingDate) bookingDate = sbRow.booking_date;
+          if (!clientPhone) clientPhone = sbRow.client_phone;
         }
-        return res.json({ success: true, message: `Booking status updated to ${status}` });
+      } catch (e) {}
+    }
+
+    if (!bookingDate || !clientPhone) {
+      await new Promise<void>((resolve) => {
+        db.get('SELECT booking_date, client_phone FROM bookings WHERE id = ? OR id = ?', [id, isNaN(numId) ? -1 : numId], (_err: any, row: any) => {
+          if (row) {
+            if (!bookingDate) bookingDate = row.booking_date;
+            if (!clientPhone) clientPhone = row.client_phone;
+          }
+          resolve();
+        });
+      });
+    }
+
+    if (bookingDate && clientPhone) {
+      db.run('UPDATE bookings SET status = ? WHERE booking_date = ? AND client_phone = ?', [status, bookingDate, clientPhone]);
+      try {
+        await supabase.from('bookings').update({ status }).eq('booking_date', bookingDate).eq('client_phone', clientPhone);
+      } catch(e) {}
+    }
+
+    if ((status === 'confirmed' || status === 'blocked') && bookingDate) {
+      try {
+        await supabase.from('blocked_dates').upsert({ date_str: bookingDate, status: 'blocked', notes: 'Confirmed Booking' }, { onConflict: 'date_str' });
+      } catch(e) {}
+
+      db.run(
+        `INSERT INTO blocked_dates (date_str, status, notes) VALUES (?, 'blocked', 'Confirmed Booking')
+         ON CONFLICT(date_str) DO UPDATE SET status = 'blocked'`,
+        [bookingDate],
+        () => {
+          return res.json({ success: true, message: `Booking status updated to ${status}` });
+        }
+      );
+    } else {
+      if (bookingDate) {
+        try {
+          await supabase.from('blocked_dates').delete().eq('date_str', bookingDate);
+        } catch(e) {}
+        db.run('DELETE FROM blocked_dates WHERE date_str = ?', [bookingDate]);
       }
-    });
+      return res.json({ success: true, message: `Booking status updated to ${status}` });
+    }
   } catch (e) {
     console.error('Booking status update error:', e);
     res.status(500).json({ error: 'Failed to update status' });
@@ -1094,11 +1155,78 @@ app.post('/api/bookings/:id/status', async (req: Request, res: Response) => {
 // 10. Delete Booking
 app.delete('/api/bookings/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
+  const numId = parseInt(id, 10);
+
   try {
-    await supabase.from('bookings').delete().eq('id', id);
-    db.run('DELETE FROM bookings WHERE id = ?', [id]);
-    res.json({ success: true, message: 'Booking deleted successfully' });
+    // Capture the booking date + phone BEFORE deleting so we can free the calendar date too
+    let bookingDate: string | null = null;
+    let clientPhone: string | null = null;
+
+    try {
+      const { data: sbRow } = await supabase
+        .from('bookings')
+        .select('booking_date, client_phone')
+        .eq('id', id)
+        .maybeSingle();
+      if (sbRow) {
+        bookingDate = sbRow.booking_date;
+        clientPhone = sbRow.client_phone;
+      }
+    } catch (e) {}
+
+    if (!bookingDate || !clientPhone) {
+      await new Promise<void>((resolve) => {
+        db.get('SELECT booking_date, client_phone FROM bookings WHERE id = ? OR id = ?', [id, isNaN(numId) ? -1 : numId], (_err: any, row: any) => {
+          if (row) {
+            bookingDate = bookingDate || row.booking_date;
+            clientPhone = clientPhone || row.client_phone;
+          }
+          resolve();
+        });
+      });
+    }
+
+    // 1. Delete from Supabase Cloud DB
+    try { await supabase.from('bookings').delete().eq('id', id); } catch (e) {}
+    try { if (!isNaN(numId)) await supabase.from('bookings').delete().eq('id', numId); } catch (e) {}
+
+    // 2. Delete from local SQLite / JSON store — local ids may differ from cloud ids, so also match by date + phone
+    db.run('DELETE FROM bookings WHERE id = ? OR id = ?', [id, isNaN(numId) ? -1 : numId]);
+    if (bookingDate && clientPhone) {
+      db.run('DELETE FROM bookings WHERE booking_date = ? AND client_phone = ?', [bookingDate, clientPhone]);
+    }
+
+    // 3. Free the calendar date — only if no other confirmed/blocked booking remains on that date
+    if (bookingDate) {
+      let hasActiveBooking = false;
+      try {
+        const { data: remaining } = await supabase
+          .from('bookings')
+          .select('id')
+          .eq('booking_date', bookingDate)
+          .in('status', ['confirmed', 'blocked']);
+        if (remaining && remaining.length > 0) hasActiveBooking = true;
+      } catch (e) {}
+
+      if (!hasActiveBooking) {
+        await new Promise<void>((resolve) => {
+          db.all('SELECT booking_date, status FROM bookings', [], (_err: any, rows: any[]) => {
+            const remainingLocal = (rows || []).filter(r => r.booking_date === bookingDate && (r.status === 'confirmed' || r.status === 'blocked'));
+            if (remainingLocal.length > 0) hasActiveBooking = true;
+            resolve();
+          });
+        });
+      }
+
+      if (!hasActiveBooking) {
+        try { await supabase.from('blocked_dates').delete().eq('date_str', bookingDate); } catch (e) {}
+        db.run('DELETE FROM blocked_dates WHERE date_str = ?', [bookingDate]);
+      }
+    }
+
+    res.json({ success: true, message: 'Booking deleted successfully. Calendar date freed if no other confirmed booking remains.' });
   } catch (e) {
+    console.error('Delete booking error:', e);
     res.status(500).json({ error: 'Failed to delete' });
   }
 });

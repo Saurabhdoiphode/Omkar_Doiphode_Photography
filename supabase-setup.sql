@@ -101,8 +101,45 @@ GRANT ALL ON TABLE public.gallery_items TO anon, authenticated;
 GRANT USAGE, SELECT ON SEQUENCE public.gallery_items_id_seq TO anon, authenticated;
 
 -- =====================================================================
--- Verify: after running, you should see all 5 tables listed here:
+-- 6. bookings  →  client booking requests + calendar status (pending / confirmed / blocked / cancelled)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS public.bookings (
+  id BIGSERIAL PRIMARY KEY,
+  client_name TEXT NOT NULL,
+  client_phone TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  event_location TEXT NOT NULL,
+  booking_date TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "bookings_all" ON public.bookings;
+CREATE POLICY "bookings_all" ON public.bookings FOR ALL USING (true) WITH CHECK (true);
+GRANT ALL ON TABLE public.bookings TO anon, authenticated;
+GRANT USAGE, SELECT ON SEQUENCE public.bookings_id_seq TO anon, authenticated;
+
+-- =====================================================================
+-- 7. blocked_dates  →  manually blocked / freed dates for the calendar
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS public.blocked_dates (
+  id BIGSERIAL PRIMARY KEY,
+  date_str TEXT UNIQUE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'blocked',
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.blocked_dates ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "blocked_dates_all" ON public.blocked_dates;
+CREATE POLICY "blocked_dates_all" ON public.blocked_dates FOR ALL USING (true) WITH CHECK (true);
+GRANT ALL ON TABLE public.blocked_dates TO anon, authenticated;
+GRANT USAGE, SELECT ON SEQUENCE public.blocked_dates_id_seq TO anon, authenticated;
+
+-- =====================================================================
+-- Verify: after running, you should see all 7 tables listed here:
 --   SELECT table_name FROM information_schema.tables
 --   WHERE table_schema = 'public' AND table_name IN
---   ('logos','profile_photo','reviews','private_galleries','gallery_items');
+--   ('logos','profile_photo','reviews','private_galleries','gallery_items','bookings','blocked_dates');
 -- =====================================================================
