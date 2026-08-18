@@ -1483,15 +1483,15 @@
                                 ${statusClass === 'pending' ? '⏳ Pending' : statusClass === 'confirmed' ? '✅ Confirmed' : '🔴 Blocked'}
                             </span>
                         </td>
-                        <td style="white-space:nowrap;">
+                         <td style="white-space:nowrap;">
                             <div class="action-group">
                                 ${b.status !== 'confirmed' ? `
-                                    <button class="btn-confirm" onclick="updateStatus(${b.id}, 'confirmed')" title="Confirm Booking & Lock Date Red">Confirm</button>
+                                    <button class="btn-confirm" onclick="updateStatus('${b.id}', 'confirmed')" title="Confirm Booking & Lock Date Red">Confirm ✅</button>
                                 ` : ''}
                                 ${b.status !== 'blocked' ? `
-                                    <button class="btn-block" onclick="updateStatus(${b.id}, 'blocked')" title="Cancel Request / Block Date">Cancel</button>
+                                    <button class="btn-block" onclick="updateStatus('${b.id}', 'blocked')" title="Cancel Request / Block Date">Cancel 🔴</button>
                                 ` : ''}
-                                <button class="btn-delete" onclick="deleteBooking(${b.id})" title="Delete Request">🗑️ Delete</button>
+                                <button class="btn-delete" onclick="deleteBooking('${b.id}')" title="Delete Request">🗑️ Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -1522,9 +1522,9 @@
                             </div>
 
                             <div style="display:flex; gap:6px; border-top:1px solid #F1F5F9; padding-top:0.7rem;">
-                                ${b.status !== 'confirmed' ? `<button class="btn-confirm" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="updateStatus(${b.id}, 'confirmed')">Confirm ✅</button>` : ''}
-                                ${b.status !== 'blocked' ? `<button class="btn-block" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="updateStatus(${b.id}, 'blocked')">Cancel 🔴</button>` : ''}
-                                <button class="btn-delete" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="deleteBooking(${b.id})">Delete 🗑️</button>
+                                ${b.status !== 'confirmed' ? `<button class="btn-confirm" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="updateStatus('${b.id}', 'confirmed')">Confirm ✅</button>` : ''}
+                                ${b.status !== 'blocked' ? `<button class="btn-block" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="updateStatus('${b.id}', 'blocked')">Cancel 🔴</button>` : ''}
+                                <button class="btn-delete" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="deleteBooking('${b.id}')">Delete 🗑️</button>
                             </div>
                         </div>
                     `;
@@ -1543,11 +1543,14 @@
 
                 const result = await res.json();
                 if (result.success) {
-                    loadBookings();
+                    await loadBookings();
+                    if (typeof renderAdminCalendar === 'function') renderAdminCalendar();
+                    if (typeof loadBlockedDatesList === 'function') loadBlockedDatesList();
                 } else {
-                    alert('Error: ' + result.error);
+                    alert('Error: ' + (result.error || 'Failed to update status'));
                 }
             } catch (err) {
+                console.error('updateStatus error:', err);
                 alert('Network error updating status');
             }
         }
@@ -1560,11 +1563,14 @@
                 const res = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
                 const result = await res.json();
                 if (result.success) {
-                    loadBookings();
+                    await loadBookings();
+                    if (typeof renderAdminCalendar === 'function') renderAdminCalendar();
+                    if (typeof loadBlockedDatesList === 'function') loadBlockedDatesList();
                 } else {
                     alert('Error deleting booking');
                 }
             } catch (err) {
+                console.error('deleteBooking error:', err);
                 alert('Network error deleting booking');
             }
         }
