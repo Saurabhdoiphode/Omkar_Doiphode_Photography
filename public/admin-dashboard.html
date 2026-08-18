@@ -629,24 +629,28 @@
             }
 
             /* Metrics Cards Grid 2x2 on Mobile */
-            .metrics-grid {
+            .metrics-grid, .analytics-kpi-grid {
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 0.6rem !important;
                 margin-bottom: 1.2rem !important;
             }
 
-            .metric-card {
-                padding: 0.8rem 0.7rem !important;
+            .metric-card, .analytics-kpi-card {
+                padding: 0.75rem 0.65rem !important;
                 border-radius: 12px !important;
             }
 
-            .metric-title {
+            .metric-title, .analytics-kpi-title {
                 font-size: 10px !important;
-                letter-spacing: 0.3px !important;
+                letter-spacing: 0.2px !important;
             }
 
-            .metric-value {
-                font-size: 22px !important;
+            .metric-value, .analytics-kpi-val {
+                font-size: 1.4rem !important;
+            }
+
+            .analytics-kpi-sub {
+                font-size: 9.5px !important;
             }
 
             /* Control Panel & Cards */
@@ -978,30 +982,30 @@
 
         <!-- TAB 3: Business Analytics Suite (No Revenue Data) -->
         <div id="analyticsTab" class="tab-content">
-            <!-- Executive KPI Cards -->
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.2rem; margin-bottom:1.5rem;">
-                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid var(--accent-gold); box-shadow:0 4px 15px rgba(0,0,0,0.03);">
-                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">📩 Total Client Inquiries</div>
-                    <div id="analyticsTotalBox" style="font-size:1.8rem; font-family:'Playfair Display',serif; font-weight:900; color:var(--dark-charcoal); margin-top:4px;">0</div>
-                    <div style="font-size:11px; color:#64748B; font-weight:600; margin-top:4px;">Total Requests Received</div>
+            <!-- Executive KPI Cards (2 Cards Per Line on Mobile) -->
+            <div class="analytics-kpi-grid">
+                <div class="analytics-kpi-card" style="border-left:4px solid var(--accent-gold) !important;">
+                    <div class="analytics-kpi-title">📩 Total Inquiries</div>
+                    <div id="analyticsTotalBox" class="analytics-kpi-val" style="color:var(--dark-charcoal);">0</div>
+                    <div class="analytics-kpi-sub" style="color:#64748B;">Requests Received</div>
                 </div>
 
-                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid #22C55E; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
-                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">📈 Booking Conversion Rate</div>
-                    <div id="analyticsConversionBox" style="font-size:1.8rem; font-family:'Playfair Display',serif; font-weight:900; color:#15803D; margin-top:4px;">0%</div>
-                    <div style="font-size:11px; color:#166534; font-weight:600; margin-top:4px;">Confirmed / Inquiries Ratio</div>
+                <div class="analytics-kpi-card" style="border-left:4px solid #22C55E !important;">
+                    <div class="analytics-kpi-title">📈 Conversion Rate</div>
+                    <div id="analyticsConversionBox" class="analytics-kpi-val" style="color:#15803D;">0%</div>
+                    <div class="analytics-kpi-sub" style="color:#166534;">Confirmed Ratio</div>
                 </div>
 
-                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid #38BDF8; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
-                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">👑 Top Demanded Package</div>
-                    <div id="analyticsTopPackageBox" style="font-size:1.1rem; font-family:'Playfair Display',serif; font-weight:700; color:var(--dark-charcoal); margin-top:8px;">Marriage Package</div>
-                    <div style="font-size:11px; color:#0284C7; font-weight:600; margin-top:4px;">Highest Client Interest</div>
+                <div class="analytics-kpi-card" style="border-left:4px solid #38BDF8 !important;">
+                    <div class="analytics-kpi-title">👑 Top Package</div>
+                    <div id="analyticsTopPackageBox" class="analytics-kpi-val" style="font-size:1.1rem !important; color:var(--dark-charcoal);">Marriage</div>
+                    <div class="analytics-kpi-sub" style="color:#0284C7;">Highest Demand</div>
                 </div>
 
-                <div style="background:white; border-radius:12px; padding:1.2rem; border:1px solid #E2E8F0; border-left:4px solid #A855F7; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
-                    <div style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">✅ Confirmed Shoots</div>
-                    <div id="analyticsConfirmedCountBox" style="font-size:1.8rem; font-family:'Playfair Display',serif; font-weight:900; color:#7E22CE; margin-top:4px;">0</div>
-                    <div style="font-size:11px; color:#64748B; margin-top:4px;">Locked Calendar Dates</div>
+                <div class="analytics-kpi-card" style="border-left:4px solid #A855F7 !important;">
+                    <div class="analytics-kpi-title">✅ Confirmed Shoots</div>
+                    <div id="analyticsConfirmedCountBox" class="analytics-kpi-val" style="color:#7E22CE;">0</div>
+                    <div class="analytics-kpi-sub" style="color:#64748B;">Locked Calendar Dates</div>
                 </div>
             </div>
 
