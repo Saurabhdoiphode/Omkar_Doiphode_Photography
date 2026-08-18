@@ -183,21 +183,34 @@
 
         .nav-menu {
             display: flex;
-            gap: 2.2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem 1.6rem;
             list-style: none;
-            margin: 0;
-            padding: 0;
+            margin: 0 auto;
+            padding: 0 1rem;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav-menu li {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
         }
 
         .nav-menu a {
             color: var(--dark-charcoal);
             text-decoration: none;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0.5px;
             position: relative;
             padding: 4px 0;
             transition: color 0.3s ease;
+            white-space: nowrap;
         }
 
         .nav-menu a:hover {
@@ -219,6 +232,46 @@
 
         .nav-menu a:hover::after {
             width: 100%;
+        }
+
+        .nav-pill-btn {
+            padding: 5px 14px !important;
+            border-radius: 20px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            white-space: nowrap !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            transition: all 0.3s ease !important;
+            text-decoration: none !important;
+        }
+
+        .nav-pill-btn::after {
+            display: none !important;
+        }
+
+        .client-portal-pill {
+            background: #FEF3C7 !important;
+            color: #92400E !important;
+            border: 1px solid #FCD34D !important;
+        }
+
+        .client-portal-pill:hover {
+            background: #F59E0B !important;
+            color: #FFFFFF !important;
+        }
+
+        .admin-login-pill {
+            background: #0F172A !important;
+            color: #FFFFFF !important;
+            border: 1px solid var(--accent-gold) !important;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15) !important;
+        }
+
+        .admin-login-pill:hover {
+            background: var(--accent-gold) !important;
+            color: #0F172A !important;
         }
 
         /* Hamburger menu styles */
@@ -2169,8 +2222,8 @@
                 <li><a href="#book">Book Now</a></li>
                 <li><a href="#contact">Contact Us</a></li>
                 <li><a href="#reviews" style="color:var(--accent-gold); font-weight:700;">⭐ Reviews</a></li>
-                <li><a href="/client-gallery.html" style="color:var(--accent-gold); font-weight:700;">🔐 Client Portal</a></li>
-                <li><a href="/admin-login.html" style="color:var(--dark-charcoal); font-weight:700; background:var(--soft-rose); padding:4px 14px; border-radius:20px; border:1px solid var(--accent-gold);">⚙️ Admin Login</a></li>
+                <li><a href="/client-gallery.html" class="nav-pill-btn client-portal-pill">🔐 Client Portal</a></li>
+                <li><a href="/admin-login.html" class="nav-pill-btn admin-login-pill">⚙️ Admin Login</a></li>
             </ul>
 
             <!-- Hamburger Menu -->
