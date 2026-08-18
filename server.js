@@ -226,6 +226,40 @@ function seedDefaultReviews() {
     });
 }
 
+// 🧹 Automatic 6-Month Booking Cleanup Function (Prevents Database Bloat)
+async function cleanupSixMonthOldBookings() {
+  try {
+    const cutoffMs = Date.now() - (180 * 24 * 60 * 60 * 1000); // 180 Days (6 Months)
+    const cutoffIso = new Date(cutoffMs).toISOString();
+    const cutoffDateStr = new Date(cutoffMs).toISOString().split('T')[0];
+
+    // 1. Clean Supabase Cloud DB
+    if (supabase) {
+      await supabase.from('bookings').delete().lt('created_at', cutoffIso);
+      await supabase.from('bookings').delete().lt('booking_date', cutoffDateStr);
+    }
+
+    // 2. Clean SQLite DB
+    if (db) {
+      db.run(
+        `DELETE FROM bookings WHERE created_at < ? OR booking_date < ?`,
+        [cutoffIso, cutoffDateStr],
+        function (err) {
+          if (!err && this && this.changes > 0) {
+            console.log(`🧹 Auto-Cleaned ${this.changes} expired booking(s) older than 6 months from SQLite.`);
+          }
+        }
+      );
+    }
+  } catch (err) {
+    console.error('Error during 6-month booking auto-cleanup:', err);
+  }
+}
+
+// Trigger cleanup on server boot & schedule every 24 hours
+cleanupSixMonthOldBookings();
+setInterval(cleanupSixMonthOldBookings, 24 * 60 * 60 * 1000);
+
 // Function to seed default photography services
 function seedDefaultServices() {
     db.get('SELECT COUNT(*) as count FROM services', [], (err, row) => {

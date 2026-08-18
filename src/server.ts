@@ -124,6 +124,55 @@ const localStore = {
 };
 localStore.load();
 
+// 🧹 Automatic 6-Month Booking Cleanup Function (Prevents Database Bloat)
+async function cleanupSixMonthOldBookings() {
+  try {
+    const cutoffMs = Date.now() - (180 * 24 * 60 * 60 * 1000); // 180 Days (6 Months)
+    const cutoffIso = new Date(cutoffMs).toISOString();
+    const cutoffDateStr = new Date(cutoffMs).toISOString().split('T')[0];
+
+    // 1. Clean localStore memory & database.json
+    if (localStore.data && Array.isArray(localStore.data.bookings)) {
+      const initialCount = localStore.data.bookings.length;
+      localStore.data.bookings = localStore.data.bookings.filter(b => {
+        if (!b) return false;
+        const createdMs = b.created_at ? new Date(b.created_at).getTime() : (typeof b.id === 'number' ? b.id : Date.now());
+        const bookingDateMs = b.booking_date ? new Date(b.booking_date).getTime() : Date.now();
+        return createdMs >= cutoffMs || bookingDateMs >= cutoffMs;
+      });
+      if (localStore.data.bookings.length < initialCount) {
+        console.log(`🧹 Auto-Cleaned ${initialCount - localStore.data.bookings.length} expired booking(s) older than 6 months from Local Store.`);
+        localStore.save();
+      }
+    }
+
+    // 2. Clean Supabase Cloud Database
+    if (supabase) {
+      await supabase.from('bookings').delete().lt('created_at', cutoffIso);
+      await supabase.from('bookings').delete().lt('booking_date', cutoffDateStr);
+    }
+
+    // 3. Clean SQLite DB if initialized
+    if (db && typeof db.run === 'function') {
+      db.run(
+        `DELETE FROM bookings WHERE created_at < ? OR booking_date < ?`,
+        [cutoffIso, cutoffDateStr],
+        function (err: any) {
+          if (!err && this && this.changes > 0) {
+            console.log(`🧹 Auto-Cleaned ${this.changes} expired booking(s) older than 6 months from SQLite.`);
+          }
+        }
+      );
+    }
+  } catch (err) {
+    console.error('Error during 6-month booking auto-cleanup:', err);
+  }
+}
+
+// Trigger cleanup on server boot & schedule every 24 hours
+cleanupSixMonthOldBookings();
+setInterval(cleanupSixMonthOldBookings, 24 * 60 * 60 * 1000);
+
 // Local Database Interface Wrapper
 let db: any;
 try {
@@ -713,6 +762,7 @@ app.post('/api/bookings', async (req: Request, res: Response) => {
 // 8. Get All Bookings
 app.get('/api/bookings', async (req: Request, res: Response) => {
   try {
+    await cleanupSixMonthOldBookings();
     const { data: sbBookings, error } = await supabase
       .from('bookings')
       .select('*')
