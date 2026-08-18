@@ -518,6 +518,89 @@
             color: #94A3B8;
         }
 
+        /* Desktop View Optimization (Full Width Grid & Alignment) */
+        @media (min-width: 993px) {
+            .container {
+                max-width: 1400px !important;
+                margin: 0 auto !important;
+                padding: 2rem !important;
+            }
+
+            .tab-nav {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                gap: 12px !important;
+                border-bottom: 2px solid #E2E8F0 !important;
+                padding-bottom: 0.8rem !important;
+                width: 100% !important;
+            }
+
+            .tab-btn {
+                flex: 1 !important;
+                justify-content: center !important;
+                padding: 12px 18px !important;
+                font-size: 13.5px !important;
+                white-space: nowrap !important;
+                border-radius: 12px !important;
+                text-align: center !important;
+            }
+
+            .metrics-grid {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+
+            .admin-calendar-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 2rem !important;
+            }
+
+            .weekday-header {
+                gap: 10px !important;
+                margin-bottom: 12px !important;
+            }
+
+            .weekday-header div {
+                font-size: 13px !important;
+                font-weight: 900 !important;
+            }
+
+            #adminCalendarGrid {
+                gap: 10px !important;
+            }
+
+            .admin-calendar-cell {
+                height: 52px !important;
+                font-size: 14px !important;
+                border-radius: 10px !important;
+            }
+
+            .admin-calendar-cell .day-dot {
+                font-size: 11px !important;
+            }
+
+            .panel-header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+            }
+
+            .analytics-kpi-grid {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+
+            #analyticsPackageCards {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+        }
+
         /* Responsive Styles for Mobile View & Chrome Desktop Site Mode */
         @media (max-width: 992px) {
             .container {
@@ -957,7 +1040,7 @@
                 <div id="blockMessage" style="display:none; padding:10px 14px; border-radius:6px; margin-bottom:1rem; font-size:13px; font-weight:600;"></div>
 
                 <!-- Admin Interactive Calendar Grid -->
-                <div class="admin-calendar-card" style="background: #0F172A !important; border-radius: 16px !important; padding: 1.2rem !important; width: 100% !important; max-width: 580px !important; margin: 0 auto !important; box-shadow: 0 10px 30px rgba(0,0,0,0.25) !important;">
+                <div class="admin-calendar-card" style="background: #0F172A !important; border-radius: 16px !important; padding: 1.5rem !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.25) !important;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                         <button onclick="adminPrevMonth()" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#F59E0B; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center;" title="Previous Month">‹</button>
                         <h4 id="adminCalendarMonth" style="font-size:1.35rem !important; font-weight:900 !important; color:#FFFFFF !important; font-family:'Playfair Display', serif !important; margin:0 !important; text-shadow:0 2px 4px rgba(0,0,0,0.4) !important;">August 2026</h4>
