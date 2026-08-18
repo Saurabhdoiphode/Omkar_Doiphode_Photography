@@ -1818,66 +1818,74 @@
         // --- Logo Management Functions ---
         async function loadLogoHistory() {
             const logoGrid = document.getElementById('logoGrid');
+            if (!logoGrid) return;
+
             try {
-                const response = await fetch('/api/logo-history');
+                const response = await fetch('/api/logo-history?t=' + Date.now());
                 const logos = await response.json();
 
-                if (!logos || logos.length === 0) {
-                    logoGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><p>No logos uploaded yet.</p></div>`;
+                if (!logos || !Array.isArray(logos) || logos.length === 0) {
+                    logoGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; text-align:center; padding:2rem; color:#64748B;"><p>No uploaded logos found in history yet.</p></div>`;
                     return;
                 }
 
                 logoGrid.innerHTML = logos.map(logo => {
-                    const date = new Date(logo.uploaded_at).toLocaleDateString();
-                    const isActive = logo.is_active;
+                    const src = logo.filepath || logo.logo_path || logo.logoUrl || '';
+                    const date = logo.uploaded_at ? new Date(logo.uploaded_at).toLocaleDateString() : 'Recent';
+                    const isActive = Number(logo.is_active) === 1 || logo.is_active === true;
 
                     return `
-                        <div class="logo-card">
-                            <img src="${logo.filepath}" alt="Logo" class="logo-image">
+                        <div class="logo-card" style="background:#FFFFFF; border:${isActive ? '2px solid #22C55E' : '1px solid #E2E8F0'}; border-radius:14px; padding:1.1rem; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between; position:relative;">
+                            <div style="text-align:center; margin-bottom:0.8rem; background:#F8FAFC; padding:1rem; border-radius:10px;">
+                                <img src="${src}" alt="Logo" class="logo-image" style="max-height:70px; max-width:100%; object-fit:contain;" onerror="this.src='https://via.placeholder.com/150?text=Logo+Preview'">
+                            </div>
                             <div class="logo-info">
-                                <div style="font-size:12px; color:#666; margin-bottom:4px;">Uploaded: ${date}</div>
-                                <div style="margin-bottom:10px;">
-                                    <span class="status-badge ${isActive ? 'confirmed' : 'pending'}">${isActive ? '✓ Active Logo' : 'Inactive'}</span>
+                                <div style="font-size:11.5px; color:#64748B; font-weight:600; margin-bottom:6px;">Uploaded: ${date}</div>
+                                <div style="margin-bottom:12px;">
+                                    <span class="status-badge ${isActive ? 'confirmed' : 'pending'}" style="padding:3px 10px; font-weight:800; border-radius:12px; font-size:11px; background:${isActive ? '#DCFCE7' : '#F1F5F9'}; color:${isActive ? '#15803D' : '#64748B'};">
+                                        ${isActive ? '✓ Active Website Logo' : 'Inactive'}
+                                    </span>
                                 </div>
                                 <div style="display:flex; gap:6px;">
-                                    ${!isActive ? `<button class="btn-confirm" style="flex:1;" onclick="activateLogo('${logo.id}')">Activate ✅</button>` : ''}
-                                    <button class="btn-delete" style="flex:1;" onclick="deleteLogo('${logo.id}')">Delete 🗑️</button>
+                                    ${!isActive ? `<button class="btn-confirm" style="flex:1; background:#16A34A; color:white; padding:8px; border-radius:8px; font-weight:700; border:none; cursor:pointer;" onclick="activateLogo('${logo.id}')">Activate ✅</button>` : ''}
+                                    <button class="btn-delete" style="flex:1; background:#EF4444; color:white; padding:8px; border-radius:8px; font-weight:700; border:none; cursor:pointer;" onclick="deleteLogo('${logo.id}')">Delete 🗑️</button>
                                 </div>
                             </div>
                         </div>
                     `;
                 }).join('');
             } catch (error) {
-                logoGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><p>Error loading logos.</p></div>`;
+                console.error('loadLogoHistory error:', error);
+                logoGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; color:#EF4444; text-align:center; padding:1rem;"><p>Failed to load logo history.</p></div>`;
             }
         }
 
         async function activateLogo(id) {
+            const uploadMsg = document.getElementById('uploadMessage');
             try {
                 const res = await fetch(`/api/set-active-logo/${encodeURIComponent(id)}`, { method: 'POST' });
                 const data = await res.json();
                 if (data.success) {
-                    const blockMsg = document.getElementById('blockMessage');
-                    if (blockMsg) {
-                        blockMsg.style.display = 'block';
-                        blockMsg.style.background = '#F0FDF4';
-                        blockMsg.style.color = '#15803D';
-                        blockMsg.style.border = '1px solid #86EFAC';
-                        blockMsg.innerHTML = '✅ Brand Logo activated successfully!';
-                        setTimeout(() => { blockMsg.style.display = 'none'; }, 3500);
+                    if (uploadMsg) {
+                        uploadMsg.style.display = 'block';
+                        uploadMsg.style.background = '#F0FDF4';
+                        uploadMsg.style.color = '#15803D';
+                        uploadMsg.style.border = '1px solid #86EFAC';
+                        uploadMsg.innerHTML = '✅ Brand Logo activated successfully!';
+                        setTimeout(() => { uploadMsg.style.display = 'none'; }, 3500);
                     }
                 }
-                loadLogoHistory();
+                await loadLogoHistory();
             } catch (e) {
                 console.error('activateLogo error:', e);
             }
         }
 
         async function deleteLogo(id) {
-            if (confirm('Are you sure you want to delete this logo?')) {
+            if (confirm('Are you sure you want to delete this logo from history?')) {
                 try {
                     await fetch(`/api/delete-logo/${encodeURIComponent(id)}`, { method: 'DELETE' });
-                    loadLogoHistory();
+                    await loadLogoHistory();
                 } catch (e) {
                     console.error('deleteLogo error:', e);
                 }
@@ -1890,17 +1898,59 @@
         function handleDrop(e) {
             e.preventDefault();
             const files = e.dataTransfer.files;
-            if (files.length > 0) uploadFile(files[0]);
+            if (files && files.length > 0) uploadFile(files[0]);
         }
         function handleFileSelect(e) {
             const files = e.target.files;
-            if (files.length > 0) uploadFile(files[0]);
+            if (files && files.length > 0) uploadFile(files[0]);
         }
+
         async function uploadFile(file) {
-            const formData = new FormData();
-            formData.append('logo', file);
-            const response = await fetch('/api/upload-logo', { method: 'POST', body: formData });
-            if (response.ok) loadLogoHistory();
+            const uploadMsg = document.getElementById('uploadMessage');
+            if (uploadMsg) {
+                uploadMsg.style.display = 'block';
+                uploadMsg.style.background = '#FEF3C7';
+                uploadMsg.style.color = '#92400E';
+                uploadMsg.style.border = '1px solid #FCD34D';
+                uploadMsg.innerHTML = '⏳ Uploading and activating brand logo... Please wait...';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('logo', file);
+
+                const response = await fetch('/api/upload-logo', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if (result.success || response.ok) {
+                    if (uploadMsg) {
+                        uploadMsg.style.background = '#F0FDF4';
+                        uploadMsg.style.color = '#15803D';
+                        uploadMsg.style.border = '1px solid #86EFAC';
+                        uploadMsg.innerHTML = '✅ Brand logo uploaded and activated successfully!';
+                        setTimeout(() => { uploadMsg.style.display = 'none'; }, 4000);
+                    }
+                    await loadLogoHistory();
+                } else {
+                    if (uploadMsg) {
+                        uploadMsg.style.background = '#FEE2E2';
+                        uploadMsg.style.color = '#991B1B';
+                        uploadMsg.style.border = '1px solid #FCA5A5';
+                        uploadMsg.innerHTML = '❌ Upload failed: ' + (result.error || 'Server error');
+                    }
+                }
+            } catch (err) {
+                console.error('uploadFile error:', err);
+                if (uploadMsg) {
+                    uploadMsg.style.background = '#FEE2E2';
+                    uploadMsg.style.color = '#991B1B';
+                    uploadMsg.style.border = '1px solid #FCA5A5';
+                    uploadMsg.innerHTML = '❌ Network error uploading logo';
+                }
+            } finally {
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput) fileInput.value = '';
+            }
         }
         function escapeHtml(str) {
             return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
