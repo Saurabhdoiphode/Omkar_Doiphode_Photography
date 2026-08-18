@@ -1061,7 +1061,7 @@
                 <h2 class="section-title">📦 Package Inquiries & Demand Breakdown</h2>
                 <p style="font-size:13px; color:#94A3B8; margin-bottom:1.2rem;">Detailed metrics on client requests and confirmed shoots for each package type.</p>
 
-                <div id="analyticsPackageCards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.2rem;">
+                <div id="analyticsPackageCards" style="display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 0.6rem !important; margin-bottom: 1.2rem !important; width: 100% !important; box-sizing: border-box !important;">
                     <!-- Loaded dynamically from JS -->
                 </div>
             </div>
@@ -2111,16 +2111,16 @@
                         const sharePct = totalReqs > 0 ? Math.round((totalForPkg / totalReqs) * 100) : 0;
 
                         return `
-                            <div style="background:#FFFFFF; border:1.5px solid #E2E8F0; border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.03); display:flex; flex-direction:column; justify-content:space-between;">
+                            <div style="background:#FFFFFF; border:1.5px solid #E2E8F0; border-radius:12px; padding:0.8rem 0.65rem; box-shadow:0 4px 12px rgba(0,0,0,0.03); display:flex; flex-direction:column; justify-space-between; box-sizing:border-box; width:100%; min-width:0;">
                                 <div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                        <span style="font-size:24px;">${icon}</span>
-                                        <span style="font-size:11px; font-weight:700; background:#F1F5F9; color:#0F172A; padding:3px 10px; border-radius:12px;">${totalForPkg} Request(s)</span>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                        <span style="font-size:20px;">${icon}</span>
+                                        <span style="font-size:10px; font-weight:800; background:#F1F5F9; color:#0F172A; padding:2px 7px; border-radius:10px;">${totalForPkg} Req</span>
                                     </div>
-                                    <h4 style="font-weight:700; font-size:15px; font-family:'Playfair Display',serif; color:#0F172A; margin-bottom:4px;">${pkgName}</h4>
-                                    <div style="font-size:12px; color:#D4A574; font-weight:700; margin-bottom:12px;">Demand Share: ${sharePct}%</div>
+                                    <h4 style="font-weight:800; font-size:13px; font-family:'Playfair Display',serif; color:#0F172A; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pkgName}</h4>
+                                    <div style="font-size:11px; color:#D4A574; font-weight:700; margin-bottom:8px;">Share: ${sharePct}%</div>
                                 </div>
-                                <div style="border-top:1px solid #E2E8F0; padding-top:10px; display:flex; justify-content:space-between; font-size:12px;">
+                                <div style="border-top:1px solid #F1F5F9; padding-top:6px; display:flex; flex-direction:column; gap:2px; font-size:10.5px;">
                                     <span style="color:#15803D; font-weight:700;">✅ Confirmed: ${confForPkg}</span>
                                     <span style="color:#92400E; font-weight:700;">⏳ Pending: ${pendForPkg}</span>
                                 </div>
