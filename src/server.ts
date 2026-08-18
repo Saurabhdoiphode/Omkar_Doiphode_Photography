@@ -923,54 +923,83 @@ app.get('/api/calendar-status', async (req: Request, res: Response) => {
   }
 });
 
-// 7. Submit Booking Request
-app.post('/api/bookings', async (req: Request, res: Response) => {
-  const { clientName, clientPhone, eventType, eventLocation, bookingDate } = req.body;
+// 7. Submit Booking Request (Supports multiple endpoint aliases & flexible parameter keys)
+const submitBookingHandler = async (req: Request, res: Response) => {
+  const clientName = String(req.body?.clientName || req.body?.client_name || req.body?.name || '').trim();
+  const clientPhone = String(req.body?.clientPhone || req.body?.client_phone || req.body?.phone || req.body?.contact || '').trim();
+  const eventType = String(req.body?.eventType || req.body?.event_type || req.body?.package || 'Photography Shoot').trim();
+  const eventLocation = String(req.body?.eventLocation || req.body?.event_location || req.body?.location || 'Pune / Maharashtra').trim();
+  let bookingDate = String(req.body?.bookingDate || req.body?.booking_date || req.body?.dateStr || req.body?.date || '').trim();
 
-  if (!clientName || !clientPhone || !eventType || !eventLocation || !bookingDate) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!bookingDate) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    bookingDate = `${yyyy}-${mm}-${dd}`;
+  }
+
+  if (!clientName || !clientPhone) {
+    return res.status(400).json({ success: false, error: 'Please provide both your Name and Phone Number.' });
   }
 
   try {
-    const { error: sbErr } = await supabase
-      .from('bookings')
-      .insert([{
-        client_name: clientName.trim(),
-        client_phone: clientPhone.trim(),
-        event_type: eventType,
-        event_location: eventLocation.trim(),
-        booking_date: bookingDate,
-        status: 'pending'
-      }]);
+    // 1. Supabase Cloud Insert
+    try {
+      await supabase
+        .from('bookings')
+        .insert([{
+          client_name: clientName,
+          client_phone: clientPhone,
+          event_type: eventType,
+          event_location: eventLocation,
+          booking_date: bookingDate,
+          status: 'pending'
+        }]);
+    } catch (sbErr) {}
 
-    if (sbErr) {
-      console.log('Supabase insert note:', sbErr.message);
-    }
-
+    // 2. Local SQLite DB Insert
     db.run(
       `INSERT INTO bookings (client_name, client_phone, event_type, event_location, booking_date, status)
        VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [clientName.trim(), clientPhone.trim(), eventType, eventLocation.trim(), bookingDate]
+      [clientName, clientPhone, eventType, eventLocation, bookingDate],
+      function (this: any) {
+        const newId = this ? this.lastID : Date.now();
+
+        // 3. LocalStore Fallback Sync
+        if (Array.isArray(localStore.data.bookings)) {
+          localStore.data.bookings.push({
+            id: newId,
+            client_name: clientName,
+            client_phone: clientPhone,
+            event_type: eventType,
+            event_location: eventLocation,
+            booking_date: bookingDate,
+            status: 'pending',
+            created_at: new Date().toISOString()
+          });
+          localStore.save();
+        }
+
+        const alertMsg = `🚨 NEW BOOKING REQUEST!\n👤 Client: ${clientName}\n📞 Phone: ${clientPhone}\n💍 Event: ${eventType}\n📅 Date: ${bookingDate}\n📍 Location: ${eventLocation}`;
+        const whatsappAlertUrl = `https://api.whatsapp.com/send?phone=919146929608&text=${encodeURIComponent(alertMsg)}`;
+
+        res.json({
+          success: true,
+          message: 'Thank you! We will call you shortly to confirm your booking.',
+          bookingId: newId,
+          bookingDate: bookingDate,
+          whatsappAlertUrl: whatsappAlertUrl
+        });
+      }
     );
-
-    const alertMsg = `🚨 NEW BOOKING REQUEST!\n👤 Client: ${clientName.trim()}\n📞 Phone: ${clientPhone.trim()}\n💍 Event: ${eventType}\n📅 Date: ${bookingDate}\n📍 Location: ${eventLocation.trim()}`;
-    console.log('\n==================================================');
-    console.log(alertMsg);
-    console.log('==================================================\n');
-
-    const whatsappAlertUrl = `https://api.whatsapp.com/send?phone=919146929608&text=${encodeURIComponent(alertMsg)}`;
-
-    res.json({
-      success: true,
-      message: 'Thank you! We will call you shortly to confirm your booking.',
-      bookingDate: bookingDate,
-      whatsappAlertUrl: whatsappAlertUrl
-    });
   } catch (err) {
     console.error('Error inserting booking:', err);
-    res.status(500).json({ error: 'Failed to record booking request.' });
+    res.status(500).json({ success: false, error: 'Failed to record booking request.' });
   }
-});
+};
+
+app.post(['/api/bookings', '/api/book', '/api/bookings/submit', '/api/create-booking'], submitBookingHandler);
 
 // 8. Get All Bookings
 app.get('/api/bookings', async (req: Request, res: Response) => {

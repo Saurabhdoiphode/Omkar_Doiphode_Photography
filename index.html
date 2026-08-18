@@ -3034,8 +3034,7 @@
                     e.preventDefault();
 
                     if (!selectedBookingDate) {
-                        showToast('⚠️ Please select an available green date from the calendar first!');
-                        return;
+                        selectedBookingDate = getTodayStr();
                     }
 
                     const clientName = document.getElementById('clientName').value.trim();
