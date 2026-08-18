@@ -50,13 +50,25 @@
         }
 
         .header-title {
-            font-size: 22px;
+            font-size: 20px;
             font-family: 'Playfair Display', serif;
             font-weight: 900;
-            color: #FFFFFF;
+            color: #FFFFFF !important;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        .header-brand-name {
+            color: #FFFFFF !important;
+            font-weight: 900 !important;
+            font-size: 1.1rem !important;
+            font-family: 'Playfair Display', serif !important;
+            letter-spacing: 0.5px !important;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
         }
 
         .header-actions {
@@ -566,8 +578,14 @@
             }
 
             .header-title {
-                font-size: 13px !important;
-                gap: 5px !important;
+                font-size: 13.5px !important;
+                color: #FFFFFF !important;
+                gap: 4px !important;
+            }
+
+            .header-brand-name {
+                font-size: 0.9rem !important;
+                color: #FFFFFF !important;
             }
 
             .header-actions {
@@ -810,8 +828,7 @@
     <!-- Header -->
     <header>
         <div class="header-title">
-            <span>📷</span>
-            <span>Omkar Doiphode Photography — Admin Panel</span>
+            <span class="header-brand-name">📷 OMKAR DOIPHODE <span style="color:#F59E0B !important;">PHOTOGRAPHY</span></span>
         </div>
         <div class="header-actions">
             <a href="/" target="_blank" class="view-site-btn">🌐 View Website</a>
