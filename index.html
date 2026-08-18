@@ -846,6 +846,191 @@
             margin-top: 1rem;
         }
 
+        /* About Us Section Responsive System */
+        .about-section {
+            background: white;
+            padding: 4.5rem 1.5rem;
+            border-top: 1px solid var(--soft-rose);
+        }
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .about-profile-header {
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+        .about-profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3.5px solid var(--accent-gold);
+            box-shadow: 0 10px 25px rgba(212,165,116,0.25);
+            flex-shrink: 0;
+        }
+        .about-profile-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+            color: #1A1A1A;
+            margin: 0;
+        }
+        .about-profile-title {
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .about-badge-tag {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+        }
+        .about-heading {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #1A1A1A;
+            margin: 0.4rem 0 1rem 0;
+            line-height: 1.2;
+            font-family: 'Playfair Display', serif;
+        }
+        .about-paragraph {
+            font-size: 0.95rem;
+            color: #4B5563;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+        .about-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.2rem;
+        }
+        .about-stat-card {
+            background: #FDFBF7;
+            border: 1px solid var(--soft-rose);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        .about-stat-num {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--dark-charcoal);
+            font-family: 'Playfair Display', serif;
+        }
+        .about-stat-lbl {
+            font-size: 0.78rem;
+            color: #6B7280;
+            font-weight: 600;
+        }
+        .about-feature-box {
+            background: #FDFBF7;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+        }
+        .about-feature-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+            color: #1A1A1A;
+            margin-bottom: 1.2rem;
+        }
+        .about-feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            font-size: 0.92rem;
+            color: #374151;
+        }
+        .about-feature-list li {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .about-feature-icon {
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* Mobile Adjustments for About Us Section */
+        @media (max-width: 768px) {
+            .about-section {
+                padding: 2.2rem 1rem !important;
+            }
+            .about-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+            }
+            .about-profile-header {
+                gap: 0.8rem !important;
+                margin-bottom: 0.8rem !important;
+            }
+            .about-profile-img {
+                width: 72px !important;
+                height: 72px !important;
+            }
+            .about-profile-name {
+                font-size: 1.05rem !important;
+            }
+            .about-profile-title {
+                font-size: 0.78rem !important;
+            }
+            .about-heading {
+                font-size: 1.45rem !important;
+                line-height: 1.25 !important;
+                margin: 0.3rem 0 0.8rem 0 !important;
+            }
+            .about-paragraph {
+                font-size: 0.86rem !important;
+                line-height: 1.6 !important;
+                margin-bottom: 0.8rem !important;
+            }
+            .about-stats-grid {
+                gap: 0.6rem !important;
+                margin-top: 1rem !important;
+            }
+            .about-stat-card {
+                padding: 0.7rem 0.5rem !important;
+            }
+            .about-stat-num {
+                font-size: 1.2rem !important;
+            }
+            .about-stat-lbl {
+                font-size: 0.72rem !important;
+            }
+            .about-feature-box {
+                padding: 1.2rem 1rem !important;
+                border-radius: 12px !important;
+                margin-top: 0.5rem !important;
+            }
+            .about-feature-title {
+                font-size: 1.1rem !important;
+                margin-bottom: 0.8rem !important;
+            }
+            .about-feature-list {
+                gap: 0.8rem !important;
+                font-size: 0.83rem !important;
+            }
+        }
+
         /* --- SCROLL REVEAL ANIMATIONS --- */
         .reveal-on-scroll {
             opacity: 0;
@@ -2248,60 +2433,60 @@
     </div>
 
     <!-- About Us Section -->
-    <section id="about" class="reveal-on-scroll" style="background: white; padding: 4.5rem 1.5rem; border-top: 1px solid var(--soft-rose);">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 3rem; align-items: center;">
+    <section id="about" class="reveal-on-scroll about-section">
+        <div class="about-container">
+            <div class="about-grid">
                 <!-- About Story / Bio -->
-                <div>
-                    <!-- Circular Profile Photo -->
-                    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1.2rem;">
-                        <img id="aboutOmkarProfileImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Omkar Doiphode Photographer Profile" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3.5px solid var(--accent-gold); box-shadow: 0 10px 25px rgba(212,165,116,0.25);">
-                        <div>
-                            <h3 style="font-size: 1.2rem; font-weight: 700; font-family: 'Playfair Display', serif; color: #1A1A1A; margin: 0;">Omkar Doiphode</h3>
-                            <p style="font-size: 0.85rem; color: var(--accent-gold); font-weight: 600; margin-top: 2px;">Founder & Lead Photographer</p>
+                <div class="about-bio">
+                    <!-- Circular Profile Photo Header -->
+                    <div class="about-profile-header">
+                        <img id="aboutOmkarProfileImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Omkar Doiphode Photographer Profile" class="about-profile-img">
+                        <div class="about-profile-info">
+                            <h3 class="about-profile-name">Omkar Doiphode</h3>
+                            <p class="about-profile-title">Founder & Lead Photographer</p>
                         </div>
                     </div>
 
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2px;">ABOUT OMKAR DOIPHODE</span>
-                    <h2 class="serif-title" style="font-size: 2.3rem; font-weight: 900; color: #1A1A1A; margin: 0.5rem 0 1.2rem 0; line-height: 1.2;">Crafting Timeless Indian Wedding & Event Visual Stories</h2>
-                    <p style="font-size: 0.95rem; color: #4B5563; line-height: 1.8; margin-bottom: 1.2rem;">
+                    <span class="about-badge-tag">ABOUT OMKAR DOIPHODE</span>
+                    <h2 class="about-heading">Crafting Timeless Indian Wedding & Event Visual Stories</h2>
+                    <p class="about-paragraph">
                         Welcome to <strong>Omkar Doiphode Photography</strong>. Based out of Maharashtra, Omkar brings over <strong>5+ years of dedicated excellence</strong> in high-end wedding cinematography, candid couple portraits, and lifestyle storytelling.
                     </p>
-                    <p style="font-size: 0.95rem; color: #4B5563; line-height: 1.8; margin-bottom: 1.8rem;">
+                    <p class="about-paragraph">
                         We believe that every wedding and event is a masterpiece of unscripted emotions. Our signature approach combines editorial color grading with warm, authentic lighting to capture memories that your family will treasure for generations.
                     </p>
 
                     <!-- Key Badges Grid -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div style="background: #FDFBF7; border: 1px solid var(--soft-rose); border-radius: 10px; padding: 1rem;">
-                            <div style="font-size: 1.4rem; font-weight: 900; color: var(--dark-charcoal); font-family: 'Playfair Display', serif;">5+ Years</div>
-                            <div style="font-size: 0.8rem; color: #6B7280; font-weight: 600;">Industry Experience</div>
+                    <div class="about-stats-grid">
+                        <div class="about-stat-card">
+                            <div class="about-stat-num">5+ Years</div>
+                            <div class="about-stat-lbl">Industry Experience</div>
                         </div>
-                        <div style="background: #FDFBF7; border: 1px solid var(--soft-rose); border-radius: 10px; padding: 1rem;">
-                            <div style="font-size: 1.4rem; font-weight: 900; color: var(--dark-charcoal); font-family: 'Playfair Display', serif;">500+</div>
-                            <div style="font-size: 0.8rem; color: #6B7280; font-weight: 600;">Happy Couples & Shoots</div>
+                        <div class="about-stat-card">
+                            <div class="about-stat-num">500+</div>
+                            <div class="about-stat-lbl">Happy Couples & Shoots</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Feature Highlights Box -->
-                <div style="background: #FDFBF7; border: 1.5px solid var(--accent-gold); border-radius: 16px; padding: 2.2rem; box-shadow: 0 15px 40px rgba(0,0,0,0.05);">
-                    <h3 style="font-size: 1.3rem; font-weight: 700; font-family: 'Playfair Display', serif; color: #1A1A1A; margin-bottom: 1.2rem;">Why Choose Omkar Photography?</h3>
-                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem; font-size: 0.92rem; color: #374151;">
-                        <li style="display: flex; gap: 10px; align-items: flex-start;">
-                            <span style="color: var(--accent-gold); font-size: 1.2rem;">✨</span>
+                <div class="about-feature-box">
+                    <h3 class="about-feature-title">Why Choose Omkar Photography?</h3>
+                    <ul class="about-feature-list">
+                        <li>
+                            <span class="about-feature-icon">✨</span>
                             <div><strong>Signature Editorial Retouching:</strong> Every single photo is individually color-graded with skin-tone perfection.</div>
                         </li>
-                        <li style="display: flex; gap: 10px; align-items: flex-start;">
-                            <span style="color: var(--accent-gold); font-size: 1.2rem;">🔐</span>
+                        <li>
+                            <span class="about-feature-icon">🔐</span>
                             <div><strong>Private Passcode Client Portal:</strong> Download your high-res photos safely with 30-day cloud backup.</div>
                         </li>
-                        <li style="display: flex; gap: 10px; align-items: flex-start;">
-                            <span style="color: var(--accent-gold); font-size: 1.2rem;">⚡</span>
+                        <li>
+                            <span class="about-feature-icon">⚡</span>
                             <div><strong>On-Time Delivery Guarantee:</strong> Quick turnaround for digital sneak-peeks and full albums.</div>
                         </li>
-                        <li style="display: flex; gap: 10px; align-items: flex-start;">
-                            <span style="color: var(--accent-gold); font-size: 1.2rem;">🤝</span>
+                        <li>
+                            <span class="about-feature-icon">🤝</span>
                             <div><strong>Personalized Experience:</strong> Custom consultation to tailor shot lists according to your family tradition.</div>
                         </li>
                     </ul>
