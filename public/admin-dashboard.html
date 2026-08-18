@@ -1682,16 +1682,18 @@
 
                 const status = adminCalendarStatuses[dateStr] || 'available';
 
-                // Check if past date
+                // Check if past date - Render as Faint Visible Tile
                 if (dateStr < todayStr) {
-                    cell.style.background = '#334155';
-                    cell.style.color = '#94A3B8';
-                    cell.style.border = '1px solid #475569';
-                    cell.style.opacity = '0.5';
-                    cell.style.cursor = 'not-allowed';
-                    cell.title = `${dateStr} - Past Date (Disabled)`;
-                    cell.innerHTML = `<span>${d}</span>`;
-                    cell.onclick = () => alert('Past dates cannot be modified.');
+                    const dotIcon = status === 'blocked' ? '🔴' : status === 'pending' ? '⏳' : '⚪';
+                    cell.style.background = 'rgba(255, 255, 255, 0.08)';
+                    cell.style.color = '#CBD5E1';
+                    cell.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                    cell.style.opacity = '0.65';
+                    cell.style.fontWeight = '700';
+                    cell.style.cursor = 'pointer';
+                    cell.title = `${dateStr} - Past Date (${status})`;
+                    cell.innerHTML = `<span>${d}</span><span class="day-dot" style="opacity:0.5; font-size:9px;">${dotIcon}</span>`;
+                    cell.onclick = () => handleAdminDateClick(dateStr, status);
                 } else if (status === 'blocked') {
                     cell.style.background = '#FEE2E2';
                     cell.style.color = '#991B1B';
