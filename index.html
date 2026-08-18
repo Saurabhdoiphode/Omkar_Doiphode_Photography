@@ -1570,6 +1570,27 @@
                 font-size: 0.8rem !important;
             }
             
+            /* Featured Collections Category Filter Bar (2 per row on mobile) */
+            .portfolio-filter-bar {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+                width: 100% !important;
+                max-width: 440px !important;
+                margin: 0 auto 2rem auto !important;
+            }
+            .filter-tab-btn {
+                padding: 9px 6px !important;
+                font-size: 0.78rem !important;
+                text-align: center !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                white-space: nowrap !important;
+            }
+
             /* Status Tracker & Review Modal Mobile Alignment */
             .status-tracker-card {
                 padding: 1.2rem 1rem !important;
@@ -1767,13 +1788,14 @@
             <h2 class="section-title">Featured Collections</h2>
             <p style="text-align: center; color: #666; margin-bottom: 2rem; font-size: 0.95rem;">Filter by occasion to explore our signature visual stories</p>
             
-            <!-- Category Filter Bar -->
+            <!-- Category Filter Bar (2 per row on mobile) -->
             <div class="portfolio-filter-bar">
                 <button class="filter-tab-btn active" onclick="filterPortfolio('all', this)">All Collections</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('wedding', this)">Weddings 💍</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('prewedding', this)">Pre-Wedding 💑</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('baby', this)">Baby Shoot 👶</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('events', this)">Events & Lifestyle 🎉</button>
+                <button class="filter-tab-btn" onclick="filterPortfolio('photoshoot', this)">Photoshoot 📸</button>
             </div>
 
             <div class="portfolio-grid" id="portfolioGrid">
@@ -1826,6 +1848,19 @@
                         <h3 class="card-title">Events & Lifestyle</h3>
                         <p class="card-description">Capture the energy of engagements, anniversaries, corporate celebrations, and lifestyle portraits.</p>
                         <button class="card-link" style="background:none; border:none; cursor:pointer;" onclick="selectPackage('Events & Lifestyle')">View Package & Book →</button>
+                    </div>
+                </div>
+
+                <!-- Photoshoot Collection Card -->
+                <div class="portfolio-card photoshoot-card" data-category="photoshoot">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80" alt="Model & Fashion Photoshoot">
+                        <span class="card-badge">📸 Photoshoot</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Model & Creative Photoshoots</h3>
+                        <p class="card-description">High-end portraiture, fashion model folios, studio lighting portraits, and creative aesthetic shoots.</p>
+                        <button class="card-link" style="background:none; border:none; cursor:pointer;" onclick="selectPackage('Photoshoot')">View Package & Book →</button>
                     </div>
                 </div>
             </div>
@@ -1959,6 +1994,22 @@
                         <li>✓ Quick Turnaround</li>
                     </ul>
                     <button class="select-package-btn" onclick="selectPackage('Events & Lifestyle')">Select Package</button>
+                </div>
+
+                <!-- Photoshoot Package -->
+                <div class="package-card">
+                    <div class="package-icon">📸</div>
+                    <h3 class="package-title">Photoshoot 📸</h3>
+                    <p class="package-description">
+                        Model folios, creative portraiture, outdoor aesthetic shoots, and studio lighting portraits.
+                    </p>
+                    <ul class="package-features">
+                        <li>✓ 2-4 Hour Creative Session</li>
+                        <li>✓ High-End Skin Retouching</li>
+                        <li>✓ Full Resolution Color Graded Drive</li>
+                        <li>✓ Social Media Reels & Edits</li>
+                    </ul>
+                    <button class="select-package-btn" onclick="selectPackage('Photoshoot')">Select Package</button>
                 </div>
             </div>
         </div>
