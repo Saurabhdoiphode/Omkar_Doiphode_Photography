@@ -696,6 +696,66 @@
             .mobile-only-cards {
                 display: block !important;
             }
+
+            /* Mobile Responsive Admin Calendar */
+            .admin-calendar-card {
+                padding: 0.8rem 0.4rem !important;
+                border-radius: 12px !important;
+            }
+
+            .weekday-header {
+                gap: 2px !important;
+            }
+
+            .weekday-header div {
+                font-size: 9.5px !important;
+                letter-spacing: 0px !important;
+            }
+
+            #adminCalendarGrid {
+                gap: 2px !important;
+            }
+
+            .admin-calendar-cell {
+                height: 36px !important;
+                font-size: 11px !important;
+                gap: 1px !important;
+                padding: 1px !important;
+                border-radius: 6px !important;
+            }
+
+            .admin-calendar-cell .day-dot {
+                font-size: 8px !important;
+            }
+
+            .admin-legend-bar {
+                gap: 5px !important;
+            }
+
+            .admin-legend-badge {
+                font-size: 10.5px !important;
+                padding: 3px 8px !important;
+            }
+        }
+
+        /* Admin Calendar Cell Base Styles */
+        .admin-calendar-cell {
+            height: 44px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            font-weight: 800;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .admin-calendar-cell .day-dot {
+            font-size: 10px;
         }
 
         @media (min-width: 769px) {
@@ -819,10 +879,10 @@
             <div class="block-date-box" style="margin-top:2rem;">
                 <div class="panel-header" style="margin-bottom:0.5rem;">
                     <h3 class="section-title">🗓️ Calendar Management (Admin View)</h3>
-                    <div style="display:flex; gap:14px; font-size:13px; font-weight:700;">
-                        <span style="color:#4ADE80;">🟢 Available</span>
-                        <span style="color:#FACC15;">⏳ Pending Request</span>
-                        <span style="color:#F87171;">🔴 Blocked / Booked</span>
+                    <div class="admin-legend-bar" style="display:flex; gap:8px; font-size:12px; font-weight:700; flex-wrap:wrap;">
+                        <span class="admin-legend-badge" style="background:rgba(74,222,128,0.15); color:#166534; border:1px solid #86EFAC; padding:4px 10px; border-radius:20px;">🟢 Available</span>
+                        <span class="admin-legend-badge" style="background:rgba(250,204,21,0.15); color:#92400E; border:1px solid #FCD34D; padding:4px 10px; border-radius:20px;">⏳ Pending Request</span>
+                        <span class="admin-legend-badge" style="background:rgba(248,113,113,0.15); color:#991B1B; border:1px solid #FCA5A5; padding:4px 10px; border-radius:20px;">🔴 Blocked / Booked</span>
                     </div>
                 </div>
                 <p style="font-size: 13px; color: #94A3B8; margin-bottom: 1.2rem;">
@@ -832,18 +892,18 @@
                 <div id="blockMessage" style="display:none; padding:10px 14px; border-radius:6px; margin-bottom:1rem; font-size:13px; font-weight:600;"></div>
 
                 <!-- Admin Interactive Calendar Grid -->
-                <div style="background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border:1px solid rgba(255, 255, 255, 0.1); border-radius:16px; padding:1.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
-                        <button onclick="adminPrevMonth()" style="background:rgba(212, 165, 116, 0.15); border:1px solid rgba(212, 165, 116, 0.4); color:#D4A574; width:40px; height:40px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease;" title="Previous Month">‹</button>
-                        <h4 id="adminCalendarMonth" style="font-size:1.4rem; font-weight:900; color:#FFFFFF; font-family:'Playfair Display', serif;">August 2026</h4>
-                        <button onclick="adminNextMonth()" style="background:rgba(212, 165, 116, 0.15); border:1px solid rgba(212, 165, 116, 0.4); color:#D4A574; width:40px; height:40px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease;" title="Next Month">›</button>
+                <div class="admin-calendar-card" style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border:1px solid rgba(212, 165, 116, 0.3); border-radius:16px; padding:1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.25); overflow:hidden;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button onclick="adminPrevMonth()" style="background:rgba(212, 165, 116, 0.15); border:1px solid rgba(212, 165, 116, 0.4); color:#D4A574; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center;" title="Previous Month">‹</button>
+                        <h4 id="adminCalendarMonth" style="font-size:1.3rem; font-weight:900; color:#FFFFFF; font-family:'Playfair Display', serif; margin:0;">August 2026</h4>
+                        <button onclick="adminNextMonth()" style="background:rgba(212, 165, 116, 0.15); border:1px solid rgba(212, 165, 116, 0.4); color:#D4A574; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center;" title="Next Month">›</button>
                     </div>
 
-                    <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; font-weight:800; font-size:12px; color:#D4A574; letter-spacing:1px; margin-bottom:12px;">
+                    <div class="weekday-header" style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; font-weight:800; font-size:11px; color:#D4A574; letter-spacing:0.5px; margin-bottom:10px; gap:8px;">
                         <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
                     </div>
 
-                    <div id="adminCalendarGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:8px;"></div>
+                    <div id="adminCalendarGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:8px; width:100%;"></div>
                 </div>
 
                 <!-- Quick Date Input Picker Alternative -->
@@ -1522,9 +1582,9 @@
             // Blank filler cells for correct weekday offset alignment
             for (let i = 0; i < firstDay; i++) {
                 const blank = document.createElement('div');
-                blank.style.height = '44px';
-                blank.style.borderRadius = '8px';
+                blank.className = 'admin-calendar-cell';
                 blank.style.background = 'rgba(255, 255, 255, 0.03)';
+                blank.style.border = '1px solid transparent';
                 blank.style.pointerEvents = 'none';
                 grid.appendChild(blank);
             }
@@ -1536,16 +1596,7 @@
                 const dateStr = `${adminYear}-${mStr}-${dStr}`;
 
                 const cell = document.createElement('div');
-                cell.style.height = '44px';
-                cell.style.borderRadius = '8px';
-                cell.style.display = 'flex';
-                cell.style.alignItems = 'center';
-                cell.style.justifyContent = 'center';
-                cell.style.fontWeight = '700';
-                cell.style.fontSize = '14px';
-                cell.style.cursor = 'pointer';
-                cell.style.transition = 'all 0.2s ease';
-                cell.textContent = d;
+                cell.className = 'admin-calendar-cell';
                 cell.title = `${dateStr} - Click to toggle availability`;
 
                 const status = adminCalendarStatuses[dateStr] || 'available';
@@ -1554,22 +1605,19 @@
                     cell.style.background = '#FEE2E2';
                     cell.style.color = '#991B1B';
                     cell.style.border = '1.5px solid #FCA5A5';
-                    cell.style.fontWeight = '800';
-                    cell.innerHTML = `${d} <span style="font-size:10px; margin-left:3px;">🔴</span>`;
+                    cell.innerHTML = `<span>${d}</span><span class="day-dot">🔴</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'blocked');
                 } else if (status === 'pending') {
                     cell.style.background = '#FEF3C7';
                     cell.style.color = '#92400E';
                     cell.style.border = '1.5px solid #FCD34D';
-                    cell.style.fontWeight = '800';
-                    cell.innerHTML = `${d} <span style="font-size:10px; margin-left:3px;">⏳</span>`;
+                    cell.innerHTML = `<span>${d}</span><span class="day-dot">⏳</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'pending');
                 } else {
                     cell.style.background = '#DCFCE7';
                     cell.style.color = '#166534';
                     cell.style.border = '1.5px solid #86EFAC';
-                    cell.style.fontWeight = '800';
-                    cell.innerHTML = `${d} <span style="font-size:10px; margin-left:3px;">🟢</span>`;
+                    cell.innerHTML = `<span>${d}</span><span class="day-dot">🟢</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'available');
                 }
 
