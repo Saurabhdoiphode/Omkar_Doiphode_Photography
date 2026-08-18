@@ -897,6 +897,20 @@
             }
         }
 
+        .weekday-header div {
+            color: #F59E0B !important;
+            font-weight: 900 !important;
+            font-size: 13px !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+        }
+
+        .admin-calendar-cell span:first-child {
+            color: #FFFFFF !important;
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+        }
+
         .admin-calendar-cell .day-dot {
             font-size: 10px;
         }
@@ -1768,44 +1782,35 @@
 
                 const status = adminCalendarStatuses[dateStr] || 'available';
 
-                // Check if past date - Render as Faint Visible Tile
+                // Check if past date - Render as High-Contrast Visible Tile
                 if (dateStr < todayStr) {
                     const dotIcon = status === 'blocked' ? '🔴' : status === 'pending' ? '⏳' : '🟢';
-                    cell.style.background = 'rgba(255, 255, 255, 0.04)';
-                    cell.style.color = '#64748B';
-                    cell.style.border = '1px solid rgba(255, 255, 255, 0.08)';
-                    cell.style.opacity = '0.55';
-                    cell.style.fontWeight = '600';
+                    cell.style.background = 'rgba(255, 255, 255, 0.08)';
+                    cell.style.border = '1px solid rgba(255, 255, 255, 0.2)';
                     cell.style.cursor = 'pointer';
                     cell.title = `${dateStr} - Past Date (${status})`;
-                    cell.innerHTML = `<span>${d}</span><span class="day-dot" style="opacity:0.4; font-size:9px;">${dotIcon}</span>`;
+                    cell.innerHTML = `<span style="color:#FFFFFF !important; font-weight:900 !important; font-size:15px !important; text-shadow:0 1px 4px rgba(0,0,0,0.8);">${d}</span><span class="day-dot" style="opacity:0.7; font-size:10px;">${dotIcon}</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, status);
                 } else if (status === 'blocked') {
-                    cell.style.background = 'rgba(239, 68, 68, 0.18)';
-                    cell.style.color = '#FCA5A5';
-                    cell.style.border = '1.5px solid #EF4444';
-                    cell.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.2)';
-                    cell.style.fontWeight = '900';
+                    cell.style.background = 'rgba(239, 68, 68, 0.35)';
+                    cell.style.border = '1.5px solid #FCA5A5';
+                    cell.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.3)';
                     cell.title = `${dateStr} - Blocked / Confirmed Shoot (Click to Toggle)`;
-                    cell.innerHTML = `<span>${d}</span><span class="day-dot">🔴</span>`;
+                    cell.innerHTML = `<span style="color:#FFFFFF !important; font-weight:900 !important; font-size:15px !important; text-shadow:0 1px 4px rgba(0,0,0,0.8);">${d}</span><span class="day-dot">🔴</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'blocked');
                 } else if (status === 'pending') {
-                    cell.style.background = 'rgba(245, 158, 11, 0.18)';
-                    cell.style.color = '#FCD34D';
-                    cell.style.border = '1.5px solid #F59E0B';
-                    cell.style.boxShadow = '0 2px 8px rgba(245, 158, 11, 0.2)';
-                    cell.style.fontWeight = '900';
+                    cell.style.background = 'rgba(245, 158, 11, 0.35)';
+                    cell.style.border = '1.5px solid #FCD34D';
+                    cell.style.boxShadow = '0 2px 8px rgba(245, 158, 11, 0.3)';
                     cell.title = `${dateStr} - Pending Inquiry Request (Click to Toggle)`;
-                    cell.innerHTML = `<span>${d}</span><span class="day-dot">⏳</span>`;
+                    cell.innerHTML = `<span style="color:#FFFFFF !important; font-weight:900 !important; font-size:15px !important; text-shadow:0 1px 4px rgba(0,0,0,0.8);">${d}</span><span class="day-dot">⏳</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'pending');
                 } else {
-                    cell.style.background = 'rgba(34, 197, 94, 0.18)';
-                    cell.style.color = '#86EFAC';
-                    cell.style.border = '1.5px solid #22C55E';
-                    cell.style.boxShadow = '0 2px 8px rgba(34, 197, 94, 0.2)';
-                    cell.style.fontWeight = '900';
+                    cell.style.background = 'rgba(34, 197, 94, 0.35)';
+                    cell.style.border = '1.5px solid #86EFAC';
+                    cell.style.boxShadow = '0 2px 8px rgba(34, 197, 94, 0.3)';
                     cell.title = `${dateStr} - Available Date (Click to Toggle)`;
-                    cell.innerHTML = `<span>${d}</span><span class="day-dot">🟢</span>`;
+                    cell.innerHTML = `<span style="color:#FFFFFF !important; font-weight:900 !important; font-size:15px !important; text-shadow:0 1px 4px rgba(0,0,0,0.8);">${d}</span><span class="day-dot">🟢</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'available');
                 }
 
