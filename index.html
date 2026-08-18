@@ -1469,19 +1469,30 @@
         .calendar-weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 0.85rem;
-            color: #777;
+            color: #475569;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             margin-bottom: 0.8rem;
+            width: 100%;
+        }
+
+        .calendar-weekdays div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
         }
 
         .calendar-dates {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 8px;
+            width: 100%;
         }
 
         .date-cell {
@@ -2729,8 +2740,9 @@
             for (let i = 0; i < firstDayIndex; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'date-cell empty-filler';
-                emptyCell.style.background = 'transparent';
-                emptyCell.style.border = 'none';
+                emptyCell.style.background = 'rgba(241, 245, 249, 0.5)';
+                emptyCell.style.border = '1px dashed #E2E8F0';
+                emptyCell.style.borderRadius = '8px';
                 emptyCell.style.pointerEvents = 'none';
                 datesContainer.appendChild(emptyCell);
             }
