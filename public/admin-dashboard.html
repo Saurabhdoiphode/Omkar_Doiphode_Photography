@@ -2143,28 +2143,53 @@
                         tableBox.innerHTML = '<div style="font-size:13px; color:#64748B;">No confirmed shoots yet. Click "Confirm Booking" on pending requests to lock dates here!</div>';
                     } else {
                         tableBox.innerHTML = `
-                            <table class="bookings-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Client Name</th>
-                                        <th>Phone</th>
-                                        <th>Package</th>
-                                        <th>Location</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${confirmedBookings.map(b => `
+                            <!-- Desktop Table View -->
+                            <div class="table-responsive" style="overflow-x:auto; width:100%; border-radius:12px;">
+                                <table class="bookings-table" style="width:100%; border-collapse:collapse;">
+                                    <thead>
                                         <tr>
-                                            <td><strong>📅 ${b.booking_date}</strong></td>
-                                            <td><strong>${escapeHtml(b.client_name)}</strong></td>
-                                            <td>📞 ${escapeHtml(b.client_phone)}</td>
-                                            <td><span style="font-weight:600; color:var(--accent-gold);">${escapeHtml(b.event_type)}</span></td>
-                                            <td>📍 ${escapeHtml(b.event_location)}</td>
+                                            <th>Date</th>
+                                            <th>Client Name</th>
+                                            <th>Phone</th>
+                                            <th>Package</th>
+                                            <th>Location</th>
                                         </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        ${confirmedBookings.map(b => `
+                                            <tr>
+                                                <td style="white-space:nowrap;"><strong>📅 ${b.booking_date}</strong></td>
+                                                <td style="white-space:nowrap;"><strong>${escapeHtml(b.client_name)}</strong></td>
+                                                <td style="white-space:nowrap;">📞 ${escapeHtml(b.client_phone)}</td>
+                                                <td style="white-space:nowrap;"><span style="font-weight:600; color:var(--accent-gold);">${escapeHtml(b.event_type)}</span></td>
+                                                <td style="white-space:nowrap;">📍 ${escapeHtml(b.event_location)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Mobile Touch-Friendly Cards View -->
+                            <div class="mobile-only-cards">
+                                ${confirmedBookings.map(b => {
+                                    const phoneClean = (b.client_phone || '').replace(/\D/g, '');
+                                    return `
+                                        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:14px; padding:1rem; margin-bottom:0.8rem; box-shadow:0 4px 15px rgba(0,0,0,0.03); border-left:5px solid #22C55E;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                                <span style="font-weight:800; font-size:14px; color:#0F172A;">📅 ${b.booking_date}</span>
+                                                <span style="font-size:11px; font-weight:800; background:#DCFCE7; color:#15803D; padding:2px 9px; border-radius:12px;">✅ Confirmed</span>
+                                            </div>
+                                            <div style="font-size:15px; font-weight:800; color:#0F172A; margin-bottom:0.2rem;">${escapeHtml(b.client_name)}</div>
+                                            <div style="font-size:13px; color:#475569; font-weight:600; margin-bottom:0.8rem;">💍 ${escapeHtml(b.event_type)} &nbsp;•&nbsp; 📍 ${escapeHtml(b.event_location)}</div>
+                                            
+                                            <div style="display:flex; gap:8px;">
+                                                <a href="tel:${phoneClean}" class="btn-contact" style="flex:1; justify-content:center; padding:7px; font-size:12px; border-radius:8px;">📞 Call ${escapeHtml(b.client_phone)}</a>
+                                                <a href="https://wa.me/91${phoneClean}?text=Hello%20${encodeURIComponent(b.client_name)},%20this%20is%20Omkar%20Doiphode%20Photography%20regarding%20your%20confirmed%20${encodeURIComponent(b.event_type)}%20shoot%20for%20${b.booking_date}." target="_blank" class="btn-contact" style="background:#25D366; flex:1; justify-content:center; padding:7px; font-size:12px; border-radius:8px;">💬 WhatsApp</a>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
                         `;
                     }
                 }
