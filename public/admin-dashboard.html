@@ -1310,7 +1310,6 @@
             if (!monthHeader || !grid) return;
 
             monthHeader.textContent = `${adminMonthNames[adminMonth]} ${adminYear}`;
-            grid.innerHTML = '';
 
             try {
                 const res = await fetch('/api/calendar-status?t=' + Date.now());
@@ -1322,14 +1321,19 @@
                 console.error('Failed to load admin calendar statuses:', err);
             }
 
+            // Always clear grid content right before building cells to prevent async duplication
+            grid.innerHTML = '';
+
             const firstDay = new Date(adminYear, adminMonth, 1).getDay();
             const totalDays = new Date(adminYear, adminMonth + 1, 0).getDate();
 
-            // Blank filler cells
+            // Blank filler cells for correct weekday offset alignment
             for (let i = 0; i < firstDay; i++) {
                 const blank = document.createElement('div');
-                blank.style.height = '42px';
-                blank.style.opacity = '0.1';
+                blank.style.height = '44px';
+                blank.style.borderRadius = '8px';
+                blank.style.background = 'rgba(255, 255, 255, 0.03)';
+                blank.style.pointerEvents = 'none';
                 grid.appendChild(blank);
             }
 
