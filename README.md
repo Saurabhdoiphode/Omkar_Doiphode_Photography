@@ -14,11 +14,9 @@ A high-end, full-stack photography studio web application and client booking man
 
 ---
 
-## 🔑 Default Admin Credentials
+## 🔒 Security & Admin Portal Access
 
-- **Username / Phone**: `9146929608`
-- **Password**: `Self@123`
-- **Studio WhatsApp / Phone**: `+91 9146929608`
+Admin access is restricted to authorized studio personnel only via the secure Admin Login Portal (`/admin-login.html`). Please contact the studio administrator for credentials.
 
 ---
 
