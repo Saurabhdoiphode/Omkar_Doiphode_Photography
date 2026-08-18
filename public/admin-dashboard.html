@@ -950,18 +950,18 @@
                 <div id="blockMessage" style="display:none; padding:10px 14px; border-radius:6px; margin-bottom:1rem; font-size:13px; font-weight:600;"></div>
 
                 <!-- Admin Interactive Calendar Grid -->
-                <div class="admin-calendar-card">
+                <div class="admin-calendar-card" style="background: #0F172A !important; border-radius: 16px !important; padding: 1.2rem !important; width: 100% !important; max-width: 580px !important; margin: 0 auto !important; box-shadow: 0 10px 30px rgba(0,0,0,0.25) !important;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                         <button onclick="adminPrevMonth()" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#F59E0B; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center;" title="Previous Month">‹</button>
-                        <h4 id="adminCalendarMonth">August 2026</h4>
+                        <h4 id="adminCalendarMonth" style="font-size:1.35rem !important; font-weight:900 !important; color:#FFFFFF !important; font-family:'Playfair Display', serif !important; margin:0 !important; text-shadow:0 2px 4px rgba(0,0,0,0.4) !important;">August 2026</h4>
                         <button onclick="adminNextMonth()" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#F59E0B; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center;" title="Next Month">›</button>
                     </div>
 
-                    <div class="weekday-header">
+                    <div class="weekday-header" style="display:grid !important; grid-template-columns:repeat(7, 1fr) !important; text-align:center !important; font-weight:900 !important; font-size:12px !important; color:#F59E0B !important; margin-bottom:10px !important; gap:6px !important; width:100% !important;">
                         <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
                     </div>
 
-                    <div id="adminCalendarGrid"></div>
+                    <div id="adminCalendarGrid" style="display:grid !important; grid-template-columns:repeat(7, 1fr) !important; gap:6px !important; width:100% !important;"></div>
                 </div>
 
                 <!-- Quick Date Input Picker Alternative -->
