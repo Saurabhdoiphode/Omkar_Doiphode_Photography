@@ -368,69 +368,72 @@ app.post('/api/upload-logo', upload.single('logo'), (req, res) => {
     );
 });
 
-// 3. Get Current Logo
+// 3. Get Active Logo
 app.get('/api/current-logo', (req, res) => {
-    db.get(
-        'SELECT filepath FROM logo_uploads WHERE is_active = 1 ORDER BY uploaded_at DESC LIMIT 1',
-        (err, row) => {
-            if (err) {
-                return res.status(500).json({ error: 'Database error' });
-            }
-            if (row) {
-                res.json({ logo_path: row.filepath });
-            } else {
-                res.json({ logo_path: null });
-            }
+    db.get('SELECT logo_path, filepath FROM logos WHERE is_active = 1 OR is_active = "1" ORDER BY id DESC LIMIT 1', (err, row) => {
+        if (row) {
+            const p = row.logo_path || row.filepath;
+            res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
+        } else {
+            db.get('SELECT logo_path, filepath FROM logos ORDER BY id DESC LIMIT 1', (err, lastRow) => {
+                if (lastRow) {
+                    const p = lastRow.logo_path || lastRow.filepath;
+                    res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
+                } else {
+                    res.json({ success: false, logo_path: null });
+                }
+            });
         }
-    );
+    });
 });
 
 // 4. Get All Uploaded Logos
 app.get('/api/logo-history', (req, res) => {
-    db.all(
-        'SELECT * FROM logo_uploads ORDER BY uploaded_at DESC',
-        (err, rows) => {
-            if (err) {
-                return res.status(500).json({ error: 'Database error' });
-            }
-            res.json(rows);
+    db.all('SELECT * FROM logos ORDER BY id DESC', (err, rows) => {
+        if (err || !rows) {
+            return res.json([]);
         }
-    );
+        const list = rows.map(r => ({
+            id: String(r.id),
+            logo_path: r.logo_path || r.filepath,
+            filepath: r.filepath || r.logo_path,
+            is_active: Number(r.is_active) === 1 ? 1 : 0,
+            uploaded_at: r.uploaded_at || r.created_at || new Date().toISOString()
+        }));
+        res.json(list);
+    });
 });
 
 // 5. Set Active Logo
-app.post('/api/set-active-logo/:id', (req, res) => {
+const setLogoActiveHandlerJS = (req, res) => {
     const id = req.params.id;
+    const numId = parseInt(id, 10);
 
-    db.run('UPDATE logo_uploads SET is_active = 0');
-    db.run('UPDATE logo_uploads SET is_active = 1 WHERE id = ?', [id], (err) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        res.json({ success: true, message: 'Logo activated' });
+    db.run('UPDATE logos SET is_active = 0', () => {
+        db.run('UPDATE logos SET is_active = 1 WHERE id = ? OR id = ? OR logo_path LIKE ?', [id, isNaN(numId) ? -1 : numId, `%${id}%`], (err) => {
+            if (err) {
+                return res.status(500).json({ error: 'Database error' });
+            }
+            res.json({ success: true, message: 'Logo activated successfully!' });
+        });
     });
-});
+};
+
+app.post('/api/set-active-logo/:id', setLogoActiveHandlerJS);
+app.post('/api/activate-logo/:id', setLogoActiveHandlerJS);
+app.post('/api/logos/activate/:id', setLogoActiveHandlerJS);
 
 // 6. Delete Logo
 app.delete('/api/delete-logo/:id', (req, res) => {
     const id = req.params.id;
+    const numId = parseInt(id, 10);
 
-    db.get('SELECT filepath FROM logo_uploads WHERE id = ?', [id], (err, row) => {
+    db.run('DELETE FROM logos WHERE id = ? OR id = ?', [id, isNaN(numId) ? -1 : numId], (err) => {
         if (err) {
             return res.status(500).json({ error: 'Database error' });
         }
-
-        if (row) {
-            const filepath = path.join(__dirname, 'public', row.filepath);
-            fs.unlink(filepath, () => {});
-        }
-
-        db.run('DELETE FROM logo_uploads WHERE id = ?', [id], (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Database error' });
-            }
-            res.json({ success: true, message: 'Logo deleted' });
-        });
+        db.run('UPDATE logos SET is_active = 1 WHERE id = (SELECT id FROM logos ORDER BY id DESC LIMIT 1) AND NOT EXISTS (SELECT 1 FROM logos WHERE is_active = 1)');
+        res.json({ success: true, message: 'Logo deleted' });
     });
 });
 
