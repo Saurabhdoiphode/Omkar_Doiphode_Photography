@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 app.use(express.static(process.cwd()));
 
 // Route Aliases for Admin Panel & Client Gallery (Handles both hyphen, underscore, and shorthand URLs)
