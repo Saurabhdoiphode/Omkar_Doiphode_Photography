@@ -1891,8 +1891,8 @@
                 
                 <!-- Call-to-Action Buttons -->
                 <div class="hero-buttons">
-                    <button class="cta-button primary-btn" onclick="document.querySelector('#portfolio-section').scrollIntoView({behavior: 'smooth'})">
-                        <span>📷 Explore Portfolio</span>
+                    <button class="cta-button primary-btn" onclick="openVisitingCardModal()">
+                        <span>🎴 Explore Portfolio & Visiting Card</span>
                     </button>
                     <button class="cta-button secondary-btn" onclick="document.querySelector('#book').scrollIntoView({behavior: 'smooth'})">
                         <span>🗓️ Check Availability</span>
@@ -2018,14 +2018,7 @@
                 </div>
             </div>
 
-            <!-- Visiting Card (Replaces Explore Portfolio Button directly) -->
-            <div style="margin-top: 2rem; text-align: center;">
-                <div style="max-width: 420px; margin: 0 auto; padding: 6px; background: white; border-radius: 14px; border: 1.5px solid var(--accent-gold); box-shadow: 0 8px 25px rgba(0,0,0,0.08);">
-                    <a href="/uploads/visiting-card.jpg" target="_blank" title="Omkar Doiphode Photography Visiting Card">
-                        <img src="/uploads/visiting-card.jpg" alt="Omkar Doiphode Photography Visiting Card" style="width: 100%; height: auto; border-radius: 10px; display: block; object-fit: contain;">
-                    </a>
-                </div>
-            </div>
+
         </div>
     </section>
 
@@ -3000,6 +2993,14 @@
             }
         });
 
+        // Visiting Card Modal Functions
+        function openVisitingCardModal() {
+            document.getElementById('visitingCardModal').style.display = 'flex';
+        }
+        function closeVisitingCardModal() {
+            document.getElementById('visitingCardModal').style.display = 'none';
+        }
+
         // Mobile Menu Toggle
         const hamburger = document.getElementById('hamburger');
         const mobileMenu = document.getElementById('mobileMenu');
@@ -3019,6 +3020,32 @@
             });
         }
     </script>
+
+    <!-- Studio Visiting Card Lightbox Modal -->
+    <div id="visitingCardModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:10000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(10px);" onclick="closeVisitingCardModal()">
+        <div style="max-width:480px; width:100%; background:#18181B; border-radius:20px; border:1.5px solid var(--accent-gold); padding:1.5rem; position:relative; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.7);" onclick="event.stopPropagation()">
+            <!-- Close Button -->
+            <button onclick="closeVisitingCardModal()" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.15); border:none; color:white; font-size:22px; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">✕</button>
+
+            <h3 style="font-family:'Playfair Display',serif; font-size:1.35rem; color:var(--accent-gold); font-weight:800; margin-bottom:0.2rem;">🎴 Studio Visiting Card</h3>
+            <p style="color:#A1A1AA; font-size:0.85rem; margin-bottom:1rem;">Omkar Doiphode Photography Official Contact Card</p>
+
+            <!-- Visiting Card Image -->
+            <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:#000; margin-bottom:1.2rem;">
+                <img src="/uploads/visiting_card.jpg" alt="Omkar Doiphode Photography Visiting Card" style="width:100%; height:auto; display:block; object-fit:contain;">
+            </div>
+
+            <!-- Download Action Button -->
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <a href="/uploads/visiting_card.jpg" download="Omkar_Doiphode_Photography_Visiting_Card.jpg" style="display:inline-flex; align-items:center; gap:6px; background:var(--accent-gold); color:#18181B; padding:10px 22px; border-radius:25px; font-size:0.85rem; font-weight:700; text-decoration:none; box-shadow:0 4px 15px rgba(212,165,116,0.3);">
+                    <span>⬇️ Download Visiting Card</span>
+                </a>
+                <button onclick="closeVisitingCardModal()" style="background:transparent; color:#D4D4D8; border:1px solid rgba(255,255,255,0.2); padding:10px 20px; border-radius:25px; font-size:0.85rem; font-weight:600; cursor:pointer;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Floating Direct WhatsApp Chat Widget -->
     <a href="https://api.whatsapp.com/send?phone=919146929608" target="_blank" rel="noopener noreferrer" class="floating-whatsapp-btn">
