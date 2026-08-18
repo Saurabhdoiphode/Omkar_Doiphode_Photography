@@ -731,6 +731,7 @@
             margin-bottom: 10px !important;
             gap: 6px !important;
             width: 100% !important;
+            box-sizing: border-box !important;
         }
 
         .weekday-header div {
@@ -738,11 +739,20 @@
             font-weight: 900 !important;
             color: #F59E0B !important;
             text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
+            letter-spacing: 0px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        #adminCalendarGrid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 6px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
 
         /* Admin Calendar Cell Base Styles */
@@ -759,6 +769,33 @@
             transition: all 0.2s ease !important;
             box-sizing: border-box !important;
             width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .admin-calendar-card {
+                padding: 1rem 0.5rem !important;
+                border-radius: 14px !important;
+            }
+
+            .weekday-header {
+                gap: 4px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .weekday-header div {
+                font-size: 11px !important;
+            }
+
+            #adminCalendarGrid {
+                gap: 4px !important;
+            }
+
+            .admin-calendar-cell {
+                height: 38px !important;
+                font-size: 12px !important;
+                border-radius: 7px !important;
+            }
         }
 
         .admin-calendar-cell .day-dot {
@@ -1592,9 +1629,9 @@
             // Blank filler cells for correct weekday offset alignment
             for (let i = 0; i < firstDay; i++) {
                 const blank = document.createElement('div');
-                blank.className = 'admin-calendar-cell';
-                blank.style.background = 'rgba(255, 255, 255, 0.03)';
-                blank.style.border = '1px solid transparent';
+                blank.className = 'admin-calendar-cell empty-filler';
+                blank.style.background = 'transparent';
+                blank.style.border = 'none';
                 blank.style.pointerEvents = 'none';
                 grid.appendChild(blank);
             }
