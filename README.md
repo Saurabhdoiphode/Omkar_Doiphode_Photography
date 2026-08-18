@@ -143,6 +143,30 @@ For production deployment on Render or Vercel, set the following environment var
 
 ---
 
+## ☁️ Supabase Table Setup (REQUIRED for permanent uploads)
+
+⚠️ **If you skip this, uploaded logos & profile photos will disappear on the next server restart** (Render wipes local files, so uploads only stay permanently if they are written to the Supabase cloud database).
+
+To make logo, profile photo, review, and gallery uploads permanent:
+
+1. Open your Supabase project → **SQL Editor** → **New query**
+2. Copy the entire contents of **`supabase-setup.sql`** (in this repo root) into the editor
+3. Click **Run**
+
+That creates these cloud tables with full anon access so the app can read/write them permanently:
+
+| Table | Purpose |
+| :--- | :--- |
+| `logos` | Brand logo uploads (current + history) |
+| `profile_photo` | Omkar About-Us profile photo |
+| `reviews` | Client reviews & approval |
+| `private_galleries` | Passcode-protected client photo galleries |
+| `gallery_items` | Portfolio gallery images |
+
+After running it, upload a new logo from the admin panel once — it will stay permanently. The server also prints a clear warning at startup if these tables are missing.
+
+---
+
 ## 📞 Studio Contact & Support
 
 - **Lead Photographer**: Omkar Doiphode
