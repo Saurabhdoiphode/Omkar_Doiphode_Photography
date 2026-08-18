@@ -30,97 +30,134 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 1.5rem 1rem;
+            background: radial-gradient(circle at 50% 30%, rgba(212, 165, 116, 0.12) 0%, transparent 60%);
         }
 
         .login-box {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            padding: 3rem 2rem;
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem 2rem;
             width: 100%;
-            max-width: 400px;
-            border-top: 4px solid var(--soft-rose);
+            max-width: 420px;
+            border: 1px solid rgba(212, 165, 116, 0.4);
+            border-top: 4px solid var(--accent-gold);
+        }
+
+        .od-monogram {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #0F172A;
+            border: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 20px;
+            margin: 0 auto 1rem auto;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);
         }
 
         .login-title {
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 28px;
+            margin-bottom: 0.3rem;
+            font-size: 24px;
             font-family: 'Playfair Display', serif;
             font-weight: 900;
+            color: #0F172A;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #64748B;
+            font-size: 13px;
+            margin-bottom: 1.8rem;
+            font-weight: 500;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.4rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            font-size: 14px;
+            margin-bottom: 0.4rem;
+            font-weight: 700;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--dark-charcoal);
+            letter-spacing: 0.8px;
+            color: #0F172A;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 4px;
-            font-size: 15px;
+            padding: 12px 14px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 10px;
+            font-size: 14px;
             transition: all 0.3s ease;
             font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+            background: #FFFFFF;
+            color: #0F172A;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--soft-rose);
-            box-shadow: 0 0 0 3px rgba(229, 208, 197, 0.1);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
         }
 
         .login-btn {
             width: 100%;
-            padding: 12px;
-            background-color: var(--soft-rose);
-            color: var(--dark-charcoal);
-            border: none;
-            border-radius: 4px;
-            font-size: 15px;
-            font-weight: 700;
+            padding: 13px;
+            background: #0F172A;
+            color: var(--accent-gold);
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 800;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);
         }
 
         .login-btn:hover {
-            background-color: var(--accent-gold);
+            background: var(--accent-gold);
+            color: #0F172A;
             transform: translateY(-2px);
         }
 
         .error-message {
-            color: #d32f2f;
+            color: #B91C1C;
             text-align: center;
-            margin-bottom: 1rem;
-            font-size: 14px;
-            padding: 10px;
-            background-color: rgba(211, 47, 47, 0.1);
-            border-radius: 4px;
+            margin-bottom: 1.2rem;
+            font-size: 13px;
+            padding: 10px 14px;
+            background-color: #FEE2E2;
+            border: 1px solid #FCA5A5;
+            border-radius: 8px;
             display: none;
+            font-weight: 600;
         }
 
         .success-message {
-            color: #388e3c;
+            color: #15803D;
             text-align: center;
-            margin-bottom: 1rem;
-            font-size: 14px;
-            padding: 10px;
-            background-color: rgba(56, 142, 60, 0.1);
-            border-radius: 4px;
+            margin-bottom: 1.2rem;
+            font-size: 13px;
+            padding: 10px 14px;
+            background-color: #DCFCE7;
+            border: 1px solid #86EFAC;
+            border-radius: 8px;
             display: none;
+            font-weight: 600;
         }
 
         .loading {
@@ -129,11 +166,11 @@
         }
 
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--soft-rose);
+            border: 3px solid #F1F5F9;
+            border-top: 3px solid var(--accent-gold);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
@@ -142,33 +179,45 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 1.8rem 1.2rem;
+                border-radius: 14px;
+            }
+            .login-title {
+                font-size: 21px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-box">
-            <h1 class="login-title">Admin Login</h1>
+            <div class="od-monogram">OD</div>
+            <h1 class="login-title">Omkar Doiphode Photography</h1>
+            <p class="login-subtitle">Admin Control Center Portal</p>
             
             <div class="error-message" id="errorMsg"></div>
             <div class="success-message" id="successMsg"></div>
 
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required placeholder="Enter your username">
+                    <label for="username">Phone / Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Enter username / 9146929608">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Enter your password">
+                    <input type="password" id="password" name="password" required placeholder="Enter your admin password">
                 </div>
 
-                <button type="submit" class="login-btn" id="submitBtn">Login</button>
+                <button type="submit" class="login-btn" id="submitBtn">Access Admin Panel →</button>
             </form>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p style="margin-top: 1rem; font-size: 14px;">Logging in...</p>
+                <p style="margin-top: 1rem; font-size: 13px; font-weight: 600; color: #475569;">Verifying credentials...</p>
             </div>
         </div>
     </div>

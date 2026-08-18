@@ -547,17 +547,160 @@
             .metric-card {
                 padding: 1rem;
             }
-            .metric-value {
-                font-size: 24px;
+        /* Mobile-First Responsive System for Admin Dashboard */
+        @media (max-width: 768px) {
+            html, body {
+                font-size: 13px !important;
             }
+
+            header {
+                padding: 0.7rem 0.8rem !important;
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+            }
+
+            .header-title {
+                font-size: 13px !important;
+                gap: 5px !important;
+            }
+
+            .header-actions {
+                gap: 5px !important;
+            }
+
+            .view-site-btn, .logout-btn {
+                padding: 5px 9px !important;
+                font-size: 11px !important;
+                border-radius: 6px !important;
+            }
+
+            .container {
+                padding: 0.8rem 0.6rem !important;
+            }
+
+            /* Scrollable Touch Pills Tab Navigation */
+            .tab-nav {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+                gap: 6px !important;
+                padding-bottom: 6px !important;
+                margin-bottom: 1.2rem !important;
+                border-bottom: 2px solid #E2E8F0 !important;
+            }
+
+            .tab-nav::-webkit-scrollbar {
+                display: none !important;
+            }
+
+            .tab-btn {
+                padding: 8px 12px !important;
+                font-size: 12px !important;
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+                border-radius: 8px !important;
+                margin-bottom: 0 !important;
+            }
+
+            /* Metrics Cards Grid 2x2 on Mobile */
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.6rem !important;
+                margin-bottom: 1.2rem !important;
+            }
+
+            .metric-card {
+                padding: 0.8rem 0.7rem !important;
+                border-radius: 12px !important;
+            }
+
+            .metric-title {
+                font-size: 10px !important;
+                letter-spacing: 0.3px !important;
+            }
+
+            .metric-value {
+                font-size: 22px !important;
+            }
+
+            /* Control Panel & Cards */
             .control-panel, .upload-section, .block-date-box {
-                padding: 1.2rem;
+                padding: 1rem 0.8rem !important;
+                border-radius: 12px !important;
+                margin-bottom: 1.2rem !important;
+            }
+
+            .panel-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 0.8rem !important;
+            }
+
+            .section-title {
+                font-size: 1.25rem !important;
+            }
+
+            .filter-buttons {
+                width: 100% !important;
+                display: flex !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+                gap: 6px !important;
+            }
+
+            .filter-btn {
+                padding: 5px 12px !important;
+                font-size: 11.5px !important;
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+            }
+
+            /* Admin Calendar Grid on Mobile */
+            #adminCalendarGrid {
+                gap: 4px !important;
+            }
+
+            #adminCalendarMonth {
+                font-size: 1.1rem !important;
+            }
+
+            .block-date-form {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.6rem !important;
+            }
+
+            .block-date-form button, .block-date-form input {
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Form Layouts & Inputs on Mobile */
+            .space-y-4 > div {
+                grid-template-columns: 1fr !important;
+            }
+
+            input[type="text"], input[type="date"], input[type="number"], select, textarea {
+                font-size: 13.5px !important;
+                padding: 8px 12px !important;
+            }
+
+            /* Toggle Desktop Table vs Mobile Cards */
+            .table-responsive {
+                display: none !important;
+            }
+            .mobile-only-cards {
+                display: block !important;
             }
         }
 
-        @media (max-width: 480px) {
-            .metrics-grid {
-                grid-template-columns: 1fr;
+        @media (min-width: 769px) {
+            .mobile-only-cards {
+                display: none !important;
             }
         }
     </style>
@@ -660,6 +803,9 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Bookings Mobile Card List View -->
+                <div id="bookingsMobileCards" class="mobile-only-cards" style="margin-top:1rem;"></div>
 
                 <!-- See More Requests Pagination Button -->
                 <div id="seeMoreContainer" style="text-align:center; margin-top:1.5rem; display:none;">
@@ -1145,8 +1291,11 @@
 
             const totalFilteredCount = filtered.length;
 
+            const mobileCardsContainer = document.getElementById('bookingsMobileCards');
+
             if (totalFilteredCount === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No ${currentFilter === 'all' ? '' : currentFilter} bookings found.</td></tr>`;
+                if (mobileCardsContainer) mobileCardsContainer.innerHTML = `<div class="empty-state" style="padding:1.5rem; text-align:center; background:#FFFFFF; border-radius:12px; border:1px solid #E2E8F0;">No ${currentFilter === 'all' ? '' : currentFilter} bookings found.</div>`;
                 const seeMoreContainer = document.getElementById('seeMoreContainer');
                 if (seeMoreContainer) seeMoreContainer.style.display = 'none';
                 return;
@@ -1219,6 +1368,39 @@
                     </tr>
                 `;
             }).join('');
+
+            // Render Touch-Friendly Mobile Cards View
+            if (mobileCardsContainer) {
+                mobileCardsContainer.innerHTML = visibleItems.map(b => {
+                    const statusClass = b.status || 'pending';
+                    const phoneClean = (b.client_phone || '').replace(/\D/g, '');
+                    const borderColor = statusClass === 'confirmed' ? '#22C55E' : statusClass === 'blocked' ? '#EF4444' : '#D4A574';
+
+                    return `
+                        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:14px; padding:1.1rem; margin-bottom:0.9rem; box-shadow:0 4px 15px rgba(0,0,0,0.03); border-left:5px solid ${borderColor};">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                                <span style="font-weight:800; font-size:14px; color:#0F172A;">📅 ${b.booking_date}</span>
+                                <span class="status-badge ${statusClass}">
+                                    ${statusClass === 'pending' ? '⏳ Pending' : statusClass === 'confirmed' ? '✅ Confirmed' : '🔴 Blocked'}
+                                </span>
+                            </div>
+                            <div style="font-size:15px; font-weight:800; color:#0F172A; margin-bottom:0.2rem;">${escapeHtml(b.client_name)}</div>
+                            <div style="font-size:13px; color:#475569; font-weight:600; margin-bottom:0.8rem;">💍 ${escapeHtml(b.event_type)} &nbsp;•&nbsp; 📍 ${escapeHtml(b.event_location)}</div>
+                            
+                            <div style="display:flex; gap:8px; margin-bottom:0.8rem;">
+                                <a href="tel:${phoneClean}" class="btn-contact" style="flex:1; justify-content:center; padding:8px; font-size:12px; border-radius:8px;">📞 Call ${escapeHtml(b.client_phone)}</a>
+                                <a href="https://wa.me/91${phoneClean}?text=Hello%20${encodeURIComponent(b.client_name)},%20this%20is%20Omkar%20Doiphode%20Photography%20regarding%20your%20${encodeURIComponent(b.event_type)}%20booking%20request%20for%20${b.booking_date}." target="_blank" class="btn-contact" style="background:#25D366; flex:1; justify-content:center; padding:8px; font-size:12px; border-radius:8px;">💬 WhatsApp</a>
+                            </div>
+
+                            <div style="display:flex; gap:6px; border-top:1px solid #F1F5F9; padding-top:0.7rem;">
+                                ${b.status !== 'confirmed' ? `<button class="btn-confirm" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="updateStatus(${b.id}, 'confirmed')">Confirm ✅</button>` : ''}
+                                ${b.status !== 'blocked' ? `<button class="btn-block" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="updateStatus(${b.id}, 'blocked')">Cancel 🔴</button>` : ''}
+                                <button class="btn-delete" style="flex:1; padding:8px; font-weight:700; border-radius:8px;" onclick="deleteBooking(${b.id})">Delete 🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         // Update Booking Status API Call
