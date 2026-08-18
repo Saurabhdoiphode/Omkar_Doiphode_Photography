@@ -452,9 +452,13 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS profile_photo (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       photo_path TEXT NOT NULL,
+      filepath TEXT,
       uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migrate legacy profile_photo table: add missing columns if upgrading from old schema
+  db.run('ALTER TABLE profile_photo ADD COLUMN filepath TEXT', () => {});
 
   db.run(`
     CREATE TABLE IF NOT EXISTS admin_users (
@@ -739,17 +743,19 @@ app.get('/api/omkar-photo', async (req: Request, res: Response) => {
       .single();
 
     if (!error && data) {
-      return res.json({ success: true, photo_path: data.photo_path });
+      const photoPath = data.photo_path || data.filepath;
+      return res.json({ success: true, photo_path: photoPath, photoUrl: photoPath });
     }
 
-    db.get('SELECT photo_path FROM profile_photo ORDER BY id DESC LIMIT 1', [], (err, row: any) => {
-      if (row && row.photo_path) {
-        return res.json({ success: true, photo_path: row.photo_path });
+    db.get('SELECT photo_path, filepath FROM profile_photo ORDER BY id DESC LIMIT 1', [], (err, row: any) => {
+      if (row) {
+        const photoPath = row.photo_path || row.filepath;
+        return res.json({ success: true, photo_path: photoPath, photoUrl: photoPath });
       }
-      return res.json({ success: false, photo_path: null });
+      return res.json({ success: false, photo_path: null, photoUrl: null });
     });
   } catch (e) {
-    res.json({ success: false, photo_path: null });
+    res.json({ success: false, photo_path: null, photoUrl: null });
   }
 });
 
