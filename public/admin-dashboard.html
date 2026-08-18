@@ -1165,6 +1165,21 @@
                 </div>
             </div>
 
+            <!-- Current Active Logo Preview -->
+            <div class="upload-section" style="margin-top:1.5rem; background:#F8FAFC; border:1px solid #D4A574; border-radius:16px; padding:1.5rem; display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+                <div style="text-align:center;">
+                    <div style="background:#FFFFFF; border:2px dashed #D4A574; border-radius:12px; padding:12px; display:flex; align-items:center; justify-content:center; width:180px; height:90px;">
+                        <img id="currentLogoPreviewImg" src="" alt="Current Active Logo" style="max-height:70px; max-width:150px; object-fit:contain;">
+                    </div>
+                    <div style="font-size:11px; font-weight:700; color:#475569; margin-top:6px;">Current Active Logo</div>
+                </div>
+                <div style="flex:1; min-width:180px;">
+                    <span id="currentLogoBadge" style="display:inline-block; font-size:11px; font-weight:800; background:#DCFCE7; color:#15803D; padding:4px 10px; border-radius:12px; margin-bottom:6px;">✓ ACTIVE ON WEBSITE</span>
+                    <div style="font-size:14px; font-weight:700; color:#0F172A;">⭐ This is the logo currently shown on your website</div>
+                    <div style="font-size:12px; color:#64748B; font-weight:500; margin-top:4px;">Uploading a new logo will automatically replace it. You can also manage all logos in the history grid below.</div>
+                </div>
+            </div>
+
             <!-- Omkar Profile Photo Management Card -->
             <div class="upload-section" style="margin-top:2rem;">
                 <h2 class="section-title">👤 Omkar Profile Photo (About Us Section)</h2>
@@ -1319,6 +1334,7 @@
                 loadAdminReviews();
             } else if (tabId === 'logosTab') {
                 loadLogoHistory();
+                loadCurrentLogoPreview();
             }
         }
 
@@ -1819,6 +1835,40 @@
         }
 
         // --- Logo Management Functions ---
+
+        async function loadCurrentLogoPreview() {
+            try {
+                const res = await fetch('/api/current-logo?t=' + Date.now());
+                const data = await res.json();
+                const img = document.getElementById('currentLogoPreviewImg');
+                const badge = document.getElementById('currentLogoBadge');
+                if (!img) return;
+
+                const src = data.logoUrl || data.logo_path || data.filepath || '';
+                if (data.success && src) {
+                    img.src = src;
+                    img.style.display = 'block';
+                    if (badge) {
+                        badge.style.display = 'inline-block';
+                        badge.textContent = '✓ ACTIVE ON WEBSITE';
+                        badge.style.background = '#DCFCE7';
+                        badge.style.color = '#15803D';
+                    }
+                } else {
+                    img.removeAttribute('src');
+                    img.style.display = 'none';
+                    if (badge) {
+                        badge.style.display = 'inline-block';
+                        badge.textContent = '⚠ No logo uploaded yet';
+                        badge.style.background = '#F1F5F9';
+                        badge.style.color = '#64748B';
+                    }
+                }
+            } catch (e) {
+                console.error('loadCurrentLogoPreview error:', e);
+            }
+        }
+
         async function loadLogoHistory() {
             const logoGrid = document.getElementById('logoGrid');
             if (!logoGrid) return;
@@ -1879,6 +1929,7 @@
                     }
                 }
                 await loadLogoHistory();
+                await loadCurrentLogoPreview();
             } catch (e) {
                 console.error('activateLogo error:', e);
             }
@@ -1889,6 +1940,7 @@
                 try {
                     await fetch(`/api/delete-logo/${encodeURIComponent(id)}`, { method: 'DELETE' });
                     await loadLogoHistory();
+                    await loadCurrentLogoPreview();
                 } catch (e) {
                     console.error('deleteLogo error:', e);
                 }
@@ -2001,6 +2053,7 @@
                         setTimeout(() => { uploadMsg.style.display = 'none'; }, 4000);
                     }
                     await loadLogoHistory();
+                    await loadCurrentLogoPreview();
                 } else {
                     await uploadFileFormData(file);
                 }
@@ -2031,6 +2084,7 @@
                         setTimeout(() => { uploadMsg.style.display = 'none'; }, 4000);
                     }
                     await loadLogoHistory();
+                    await loadCurrentLogoPreview();
                 } else {
                     if (uploadMsg) {
                         uploadMsg.style.background = '#FEE2E2';
