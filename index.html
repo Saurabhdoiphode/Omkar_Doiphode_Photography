@@ -1680,6 +1680,33 @@
                 white-space: nowrap !important;
             }
 
+            /* Compact Portfolio Cards Height Reduction on Mobile */
+            .portfolio-card {
+                border-radius: 10px !important;
+            }
+            .card-image {
+                height: 110px !important;
+            }
+            .card-badge {
+                font-size: 9px !important;
+                padding: 2px 7px !important;
+                top: 6px !important;
+                left: 6px !important;
+            }
+            .card-content {
+                padding: 0.6rem 0.5rem !important;
+            }
+            .card-title {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.2rem !important;
+                line-height: 1.2 !important;
+            }
+            .card-description {
+                font-size: 0.71rem !important;
+                margin-bottom: 0 !important;
+                line-height: 1.25 !important;
+            }
+
             /* Status Tracker & Review Modal Mobile Alignment */
             .status-tracker-card {
                 padding: 1.2rem 1rem !important;
@@ -1912,6 +1939,7 @@
                 <button class="filter-tab-btn" onclick="filterPortfolio('wedding', this)">Weddings 💍</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('prewedding', this)">Pre-Wedding 💑</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('baby', this)">Baby Shoot 👶</button>
+                <button class="filter-tab-btn" onclick="filterPortfolio('birthday', this)">Birthday Shoot 🎂</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('events', this)">Events & Lifestyle 🎉</button>
                 <button class="filter-tab-btn" onclick="filterPortfolio('photoshoot', this)">Photoshoot 📸</button>
             </div>
@@ -1925,8 +1953,7 @@
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">Wedding Collections</h3>
-                        <p class="card-description">Celebrate love with timeless wedding photographs. From intimate rituals to grand wedding receptions.</p>
-                        <button class="card-link" style="background:none; border:none; cursor:pointer;" onclick="selectPackage('Marriage Package')">View Package & Book →</button>
+                        <p class="card-description">Timeless wedding rituals & grand receptions.</p>
                     </div>
                 </div>
 
@@ -1938,8 +1965,7 @@
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">Pre-Wedding Shoots</h3>
-                        <p class="card-description">Document your unique love story before the big day with scenic outdoor and creative studio concepts.</p>
-                        <button class="card-link" style="background:none; border:none; cursor:pointer;" onclick="selectPackage('Pre-Wedding Shoot')">View Package & Book →</button>
+                        <p class="card-description">Scenic outdoor & aesthetic studio couple stories.</p>
                     </div>
                 </div>
 
@@ -1950,9 +1976,20 @@
                         <span class="card-badge">👶 Baby Shoot</span>
                     </div>
                     <div class="card-content">
-                        <h3 class="card-title">Baby & Newborn Shoots</h3>
-                        <p class="card-description">Precious first moments, milestone themes, and cute newborn portrait photography setups.</p>
-                        <button class="card-link" style="background:none; border:none; cursor:pointer;" onclick="selectPackage('Baby Shoot')">View Package & Book →</button>
+                        <h3 class="card-title">Baby & Newborn</h3>
+                        <p class="card-description">Precious newborn portraits & milestone themes.</p>
+                    </div>
+                </div>
+
+                <!-- Birthday Shoot Card -->
+                <div class="portfolio-card birthday-card" data-category="birthday">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format&fit=crop&q=80" alt="Birthday Shoot">
+                        <span class="card-badge">🎂 Birthday Shoot</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Birthday Shoots</h3>
+                        <p class="card-description">Special birthday party moments & cake smash.</p>
                     </div>
                 </div>
 
@@ -1964,8 +2001,7 @@
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">Events & Lifestyle</h3>
-                        <p class="card-description">Capture the energy of engagements, anniversaries, corporate celebrations, and lifestyle portraits.</p>
-                        <button class="card-link" style="background:none; border:none; cursor:pointer;" onclick="selectPackage('Events & Lifestyle')">View Package & Book →</button>
+                        <p class="card-description">Engagements, ring ceremony & celebrations.</p>
                     </div>
                 </div>
 
@@ -1976,9 +2012,8 @@
                         <span class="card-badge">📸 Photoshoot</span>
                     </div>
                     <div class="card-content">
-                        <h3 class="card-title">Model & Creative Photoshoots</h3>
-                        <p class="card-description">High-end portraiture, fashion model folios, studio lighting portraits, and creative aesthetic shoots.</p>
-                        <button class="card-link" style="background:none; border:none; cursor:pointer;" onclick="selectPackage('Photoshoot')">View Package & Book →</button>
+                        <h3 class="card-title">Model Photoshoots</h3>
+                        <p class="card-description">Fashion model folios & studio portraits.</p>
                     </div>
                 </div>
             </div>
@@ -2110,6 +2145,7 @@
                                 <option value="Marriage Package">Marriage Package</option>
                                 <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
                                 <option value="Baby Shoot">Baby Shoot</option>
+                                <option value="Birthday Shoot">Birthday Shoot 🎂</option>
                                 <option value="Events & Lifestyle">Events & Lifestyle</option>
                                 <option value="Photoshoot">Photoshoot 📸</option>
                             </select>
