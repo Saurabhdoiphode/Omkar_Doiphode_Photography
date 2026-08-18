@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Admin Dashboard - Omkar Doiphode Photography</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1894,40 +1897,60 @@
 
         function compressImageFile(file, maxWidth = 800, maxHeight = 800, quality = 0.88) {
             return new Promise((resolve, reject) => {
-                if (!file || !file.type || !file.type.startsWith('image/')) {
-                    return reject(new Error('Please select a valid image file.'));
+                if (!file) {
+                    return reject(new Error('No file selected.'));
                 }
+
+                const fileName = (file.name || '').toLowerCase();
+                const fileType = (file.type || '').toLowerCase();
+
                 const reader = new FileReader();
                 reader.onload = (e) => {
+                    const rawDataUrl = e.target.result;
+                    if (!rawDataUrl) {
+                        return reject(new Error('Failed to read file content.'));
+                    }
+
                     const img = new Image();
                     img.onload = () => {
-                        let width = img.width;
-                        let height = img.height;
+                        try {
+                            let width = img.width || maxWidth;
+                            let height = img.height || maxHeight;
 
-                        if (width > maxWidth || height > maxHeight) {
-                            if (width > height) {
-                                height = Math.round((height * maxWidth) / width);
-                                width = maxWidth;
-                            } else {
-                                width = Math.round((width * maxHeight) / height);
-                                height = maxHeight;
+                            if (width > maxWidth || height > maxHeight) {
+                                if (width > height) {
+                                    height = Math.round((height * maxWidth) / width);
+                                    width = maxWidth;
+                                } else {
+                                    width = Math.round((width * maxHeight) / height);
+                                    height = maxHeight;
+                                }
                             }
+
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            const isPng = fileType.includes('png') || fileName.endsWith('.png');
+                            const mimeType = isPng ? 'image/png' : 'image/jpeg';
+                            const dataUrl = canvas.toDataURL(mimeType, isPng ? 0.95 : quality);
+                            resolve(dataUrl);
+                        } catch (canvasErr) {
+                            resolve(rawDataUrl);
                         }
-
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        const isPng = file.type.toLowerCase().includes('png');
-                        const mimeType = isPng ? 'image/png' : 'image/jpeg';
-                        const dataUrl = canvas.toDataURL(mimeType, isPng ? 0.95 : quality);
-                        resolve(dataUrl);
                     };
-                    img.onerror = () => reject(new Error('Invalid image file format.'));
-                    img.src = e.target.result;
+                    img.onerror = () => {
+                        // Fallback to raw FileReader Data URL if Image canvas render fails
+                        if (rawDataUrl) {
+                            resolve(rawDataUrl);
+                        } else {
+                            reject(new Error('Failed to parse image file.'));
+                        }
+                    };
+                    img.src = rawDataUrl;
                 };
                 reader.onerror = () => reject(new Error('Failed to read file.'));
                 reader.readAsDataURL(file);
