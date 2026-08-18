@@ -340,32 +340,29 @@ app.post('/api/login', (req, res) => {
 });
 
 // 2. Upload Logo
-app.post('/api/upload-logo', upload.single('logo'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    const filename = req.file.filename;
-    const filepath = '/uploads/' + filename;
-
-    // Deactivate previous logos
-    db.run('UPDATE logo_uploads SET is_active = 0');
-
-    // Insert new logo
-    db.run(
-        'INSERT INTO logo_uploads (filename, filepath, is_active) VALUES (?, ?, 1)',
-        [filename, filepath],
-        (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Database error' });
-            }
-            res.json({ 
-                success: true, 
-                message: 'Logo uploaded successfully',
-                logo_path: filepath 
-            });
+app.post('/api/upload-logo', (req, res) => {
+    upload.single('logo')(req, res, (err) => {
+        if (err || !req.file) {
+            return res.status(400).json({ success: false, error: 'No logo file provided or upload error' });
         }
-    );
+
+        const filename = req.file.filename;
+        const logoPath = '/uploads/logos/' + filename;
+
+        db.run('UPDATE logos SET is_active = 0', () => {
+            db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], (dbErr) => {
+                if (dbErr) {
+                    return res.status(500).json({ success: false, error: 'Database error saving logo' });
+                }
+                res.json({ 
+                    success: true, 
+                    message: 'Logo uploaded and set as active successfully',
+                    logo_path: logoPath,
+                    filepath: logoPath 
+                });
+            });
+        });
+    });
 });
 
 // 3. Get Active Logo

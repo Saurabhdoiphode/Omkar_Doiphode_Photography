@@ -41,35 +41,71 @@ app.get(['/client-gallery', '/client_gallery', '/client-gallery.html', '/client_
 });
 
 // Ensure upload directories exist
+// Ensure upload directories exist in BOTH process.cwd()/uploads AND process.cwd()/public/uploads
 const uploadDir = path.join(process.cwd(), 'uploads');
+const publicUploadDir = path.join(process.cwd(), 'public', 'uploads');
+
 const logoDir = path.join(uploadDir, 'logos');
 const profileDir = path.join(uploadDir, 'profile');
 const galleryDir = path.join(uploadDir, 'gallery');
 
-[uploadDir, logoDir, profileDir, galleryDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+const publicLogoDir = path.join(publicUploadDir, 'logos');
+const publicProfileDir = path.join(publicUploadDir, 'profile');
+const publicGalleryDir = path.join(publicUploadDir, 'gallery');
+
+[uploadDir, publicUploadDir, logoDir, profileDir, galleryDir, publicLogoDir, publicProfileDir, publicGalleryDir].forEach(dir => {
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch (e) {}
+});
+
+// Multer Storage Engines with auto-directory creation
+const logoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    try {
+      if (!fs.existsSync(logoDir)) fs.mkdirSync(logoDir, { recursive: true });
+      if (!fs.existsSync(publicLogoDir)) fs.mkdirSync(publicLogoDir, { recursive: true });
+    } catch(e) {}
+    cb(null, logoDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '.png') || '.png';
+    cb(null, `logo_${Date.now()}${ext}`);
   }
 });
-
-// Multer Storage Engines
-const logoStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, logoDir),
-  filename: (req, file, cb) => cb(null, `logo_${Date.now()}${path.extname(file.originalname)}`)
-});
-const uploadLogo = multer({ storage: logoStorage });
+const uploadLogo = multer({ storage: logoStorage, limits: { fileSize: 15 * 1024 * 1024 } });
 
 const profileStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, profileDir),
-  filename: (req, file, cb) => cb(null, `profile_${Date.now()}${path.extname(file.originalname)}`)
+  destination: (req, file, cb) => {
+    try {
+      if (!fs.existsSync(profileDir)) fs.mkdirSync(profileDir, { recursive: true });
+      if (!fs.existsSync(publicProfileDir)) fs.mkdirSync(publicProfileDir, { recursive: true });
+    } catch(e) {}
+    cb(null, profileDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '.jpg') || '.jpg';
+    cb(null, `profile_${Date.now()}${ext}`);
+  }
 });
-const uploadProfile = multer({ storage: profileStorage });
+const uploadProfile = multer({ storage: profileStorage, limits: { fileSize: 15 * 1024 * 1024 } });
 
 const galleryStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, galleryDir),
-  filename: (req, file, cb) => cb(null, `gallery_${Date.now()}${path.extname(file.originalname)}`)
+  destination: (req, file, cb) => {
+    try {
+      if (!fs.existsSync(galleryDir)) fs.mkdirSync(galleryDir, { recursive: true });
+      if (!fs.existsSync(publicGalleryDir)) fs.mkdirSync(publicGalleryDir, { recursive: true });
+    } catch(e) {}
+    cb(null, galleryDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '.jpg') || '.jpg';
+    cb(null, `gallery_${Date.now()}${ext}`);
+  }
 });
-const uploadGallery = multer({ storage: galleryStorage });
+const uploadGallery = multer({ storage: galleryStorage, limits: { fileSize: 15 * 1024 * 1024 } });
 
 // Supabase Cloud Database Client
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wrirqfaewmuukxlowiuj.supabase.co';
@@ -570,35 +606,49 @@ app.get('/api/logo-history', async (req: Request, res: Response) => {
 });
 
 // 3. Upload Brand Logo
-app.post('/api/upload-logo', uploadLogo.single('logo'), async (req: Request, res: Response) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No logo file provided' });
-  }
+app.post('/api/upload-logo', (req: Request, res: Response) => {
+  uploadLogo.single('logo')(req, res, async (err: any) => {
+    if (err) {
+      console.error('Logo upload error:', err);
+      return res.status(400).json({ success: false, error: 'Logo upload error: ' + (err.message || 'Invalid file') });
+    }
 
-  const logoPath = `/uploads/logos/${req.file.filename}`;
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No logo file provided' });
+    }
 
-  try {
-    // Reset all previous active logos to 0
-    db.run('UPDATE logos SET is_active = 0');
-    try { await supabase.from('logos').update({ is_active: 0 }).neq('id', -1); } catch (e) {}
+    const filename = req.file.filename;
+    const logoPath = `/uploads/logos/${filename}`;
 
-    // Insert new logo as active (is_active = 1)
     try {
-      await supabase.from('logos').insert([{ logo_path: logoPath, is_active: 1 }]);
+      const srcFile = path.join(logoDir, filename);
+      const destFile = path.join(publicLogoDir, filename);
+      fs.copyFileSync(srcFile, destFile);
     } catch (e) {}
 
-    db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], function (this: any) {
-      const newId = this ? this.lastID : Date.now();
-      if (Array.isArray(localStore.data.logos)) {
-        localStore.data.logos.forEach((l: any) => l.is_active = 0);
-        localStore.data.logos.push({ id: newId, logo_path: logoPath, filepath: logoPath, is_active: 1 });
-      }
-      res.json({ success: true, message: 'Logo uploaded and set as active successfully!', logo_path: logoPath, filepath: logoPath });
-    });
-  } catch (e) {
-    console.error('Upload logo error:', e);
-    res.status(500).json({ error: 'Failed to save logo' });
-  }
+    try {
+      // Reset all previous active logos to 0
+      db.run('UPDATE logos SET is_active = 0');
+      try { await supabase.from('logos').update({ is_active: 0 }).neq('id', -1); } catch (e) {}
+
+      // Insert new logo as active (is_active = 1)
+      try {
+        await supabase.from('logos').insert([{ logo_path: logoPath, is_active: 1 }]);
+      } catch (e) {}
+
+      db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], function (this: any) {
+        const newId = this ? this.lastID : Date.now();
+        if (Array.isArray(localStore.data.logos)) {
+          localStore.data.logos.forEach((l: any) => l.is_active = 0);
+          localStore.data.logos.push({ id: newId, logo_path: logoPath, filepath: logoPath, is_active: 1 });
+        }
+        res.json({ success: true, message: 'Logo uploaded and set as active successfully!', logo_path: logoPath, filepath: logoPath });
+      });
+    } catch (e) {
+      console.error('Upload logo error:', e);
+      res.status(500).json({ success: false, error: 'Failed to save logo' });
+    }
+  });
 });
 
 // 4. Activate Specific Logo (Admin Dashboard)
@@ -678,21 +728,41 @@ app.get('/api/omkar-photo', async (req: Request, res: Response) => {
 });
 
 // 4. Upload Profile Photo
-app.post('/api/upload-omkar-photo', uploadProfile.single('profile_photo'), async (req: Request, res: Response) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No photo provided' });
-  }
+app.post('/api/upload-omkar-photo', (req: Request, res: Response) => {
+  uploadProfile.single('profile_photo')(req, res, async (err: any) => {
+    if (err) {
+      console.error('Profile photo upload error:', err);
+      return res.status(400).json({ success: false, error: 'Profile photo upload error: ' + (err.message || 'Invalid file') });
+    }
 
-  const photoPath = `/uploads/profile/${req.file.filename}`;
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No photo file provided' });
+    }
 
-  try {
-    await supabase.from('profile_photo').insert([{ photo_path: photoPath }]);
-    db.run('INSERT INTO profile_photo (photo_path) VALUES (?)', [photoPath]);
+    const filename = req.file.filename;
+    const photoPath = `/uploads/profile/${filename}`;
 
-    res.json({ success: true, message: 'Profile photo updated!', photo_path: photoPath });
-  } catch (e) {
-    res.status(500).json({ error: 'Failed to save photo' });
-  }
+    try {
+      const srcFile = path.join(profileDir, filename);
+      const destFile = path.join(publicProfileDir, filename);
+      fs.copyFileSync(srcFile, destFile);
+    } catch (e) {}
+
+    try {
+      try {
+        await supabase.from('profile_photo').insert([{ photo_path: photoPath }]);
+      } catch (e) {}
+
+      db.run('INSERT INTO profile_photo (photo_path) VALUES (?)', [photoPath], () => {
+        localStore.data.profile_photo = [{ id: Date.now(), photo_path: photoPath, filepath: photoPath }];
+        localStore.save();
+        res.json({ success: true, message: 'Profile photo updated successfully!', photo_path: photoPath, photoUrl: photoPath });
+      });
+    } catch (e) {
+      console.error('Save profile photo DB error:', e);
+      res.status(500).json({ success: false, error: 'Failed to save photo' });
+    }
+  });
 });
 
 // 5. Delete Profile Photo
