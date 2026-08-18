@@ -472,34 +472,60 @@ app.post('/api/login', async (req: Request, res: Response) => {
 // 1. Get Active Logo (For Website Header)
 app.get('/api/current-logo', async (req: Request, res: Response) => {
   try {
-    // 1. Check localStore active logo first (Admin panel's active selection)
-    const localActive = localStore.data.logos.find(l => Number(l.is_active) === 1 || l.is_active === true);
-    if (localActive && (localActive.logo_path || localActive.filepath)) {
-      const p = localActive.logo_path || localActive.filepath;
-      return res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
+    let logoPath: string | null = null;
+
+    // A. Check SQLite active logo first
+    await new Promise<void>((resolve) => {
+      db.get('SELECT logo_path, filepath FROM logos WHERE is_active = 1 OR is_active = "1" ORDER BY id DESC LIMIT 1', [], (_err: any, row: any) => {
+        if (row) {
+          logoPath = row.logo_path || row.filepath;
+        }
+        resolve();
+      });
+    });
+
+    // B. Check Supabase Cloud active logo if not found in SQLite
+    if (!logoPath) {
+      try {
+        const { data: logo } = await supabase
+          .from('logos')
+          .select('*')
+          .eq('is_active', 1)
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (logo && (logo.logo_path || logo.filepath)) {
+          logoPath = logo.logo_path || logo.filepath;
+        }
+      } catch (e) {}
     }
 
-    // 2. Check Supabase Cloud active logo
-    try {
-      const { data: logo, error } = await supabase
-        .from('logos')
-        .select('*')
-        .eq('is_active', 1)
-        .order('id', { ascending: false })
-        .limit(1)
-        .single();
+    // C. Check localStore active logo
+    if (!logoPath && Array.isArray(localStore.data.logos)) {
+      const localActive = localStore.data.logos.find((l: any) => Number(l.is_active) === 1 || l.is_active === true);
+      if (localActive) logoPath = localActive.logo_path || localActive.filepath;
+    }
 
-      if (!error && logo && (logo.logo_path || logo.filepath)) {
-        const p = logo.logo_path || logo.filepath;
-        return res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
-      }
-    } catch (e) {}
+    // D. Fallback to latest uploaded logo if no logo explicitly flagged active
+    if (!logoPath) {
+      await new Promise<void>((resolve) => {
+        db.get('SELECT logo_path, filepath FROM logos ORDER BY id DESC LIMIT 1', [], (_err: any, row: any) => {
+          if (row) {
+            logoPath = row.logo_path || row.filepath;
+          }
+          resolve();
+        });
+      });
+    }
 
-    // 3. Fallback to latest logo in localStore
-    const lastLogo = localStore.data.logos[localStore.data.logos.length - 1];
-    if (lastLogo && (lastLogo.logo_path || lastLogo.filepath)) {
-      const p = lastLogo.logo_path || lastLogo.filepath;
-      return res.json({ success: true, logo_path: p, filepath: p, logoUrl: p });
+    if (!logoPath && Array.isArray(localStore.data.logos) && localStore.data.logos.length > 0) {
+      const last = localStore.data.logos[localStore.data.logos.length - 1];
+      if (last) logoPath = last.logo_path || last.filepath;
+    }
+
+    if (logoPath) {
+      return res.json({ success: true, logo_path: logoPath, filepath: logoPath, logoUrl: logoPath });
     }
 
     return res.json({ success: false, logo_path: null, filepath: null, logoUrl: null });
@@ -511,14 +537,31 @@ app.get('/api/current-logo', async (req: Request, res: Response) => {
 // 2. Get Logo History (For Admin Dashboard Grid)
 app.get('/api/logo-history', async (req: Request, res: Response) => {
   try {
-    db.all('SELECT * FROM logos ORDER BY id DESC', [], (_err: any, rows: any[]) => {
-      const list = (rows || []).map(r => ({
-        id: r.id || Date.now(),
+    db.all('SELECT * FROM logos ORDER BY id DESC', [], async (_err: any, rows: any[]) => {
+      let list = (rows || []).map(r => ({
+        id: String(r.id),
         logo_path: r.logo_path || r.filepath,
         filepath: r.filepath || r.logo_path,
-        is_active: r.is_active === 1 || r.is_active === true ? 1 : 0,
+        is_active: Number(r.is_active) === 1 ? 1 : 0,
         uploaded_at: r.uploaded_at || new Date().toISOString()
       }));
+
+      // Combine with Supabase if SQLite is empty
+      if (list.length === 0) {
+        try {
+          const { data: sbLogos } = await supabase.from('logos').select('*').order('id', { ascending: false });
+          if (sbLogos && sbLogos.length > 0) {
+            list = sbLogos.map(r => ({
+              id: String(r.id),
+              logo_path: r.logo_path || r.filepath,
+              filepath: r.filepath || r.logo_path,
+              is_active: Number(r.is_active) === 1 ? 1 : 0,
+              uploaded_at: r.created_at || new Date().toISOString()
+            }));
+          }
+        } catch (e) {}
+      }
+
       res.json(list);
     });
   } catch (e) {
@@ -535,36 +578,73 @@ app.post('/api/upload-logo', uploadLogo.single('logo'), async (req: Request, res
   const logoPath = `/uploads/logos/${req.file.filename}`;
 
   try {
+    // Reset all previous active logos to 0
+    db.run('UPDATE logos SET is_active = 0');
+    try { await supabase.from('logos').update({ is_active: 0 }).neq('id', -1); } catch (e) {}
+
+    // Insert new logo as active (is_active = 1)
     try {
       await supabase.from('logos').insert([{ logo_path: logoPath, is_active: 1 }]);
     } catch (e) {}
 
-    db.run('INSERT INTO logos (logo_path) VALUES (?)', [logoPath], () => {
-      res.json({ success: true, message: 'Logo uploaded successfully!', logo_path: logoPath, filepath: logoPath });
+    db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], function (this: any) {
+      const newId = this ? this.lastID : Date.now();
+      if (Array.isArray(localStore.data.logos)) {
+        localStore.data.logos.forEach((l: any) => l.is_active = 0);
+        localStore.data.logos.push({ id: newId, logo_path: logoPath, filepath: logoPath, is_active: 1 });
+      }
+      res.json({ success: true, message: 'Logo uploaded and set as active successfully!', logo_path: logoPath, filepath: logoPath });
     });
   } catch (e) {
+    console.error('Upload logo error:', e);
     res.status(500).json({ error: 'Failed to save logo' });
   }
 });
 
 // 4. Activate Specific Logo (Admin Dashboard)
-app.post('/api/set-active-logo/:id', async (req: Request, res: Response) => {
+const setLogoActiveHandler = async (req: Request, res: Response) => {
   const id = req.params.id;
+  const numId = parseInt(id, 10);
+
   try {
-    db.run('UPDATE logos SET is_active = 1 WHERE id = ?', [id], () => {
-      res.json({ success: true, message: 'Logo set as active!' });
-    });
+    // 1. Reset all logo active statuses to 0
+    db.run('UPDATE logos SET is_active = 0');
+    try { await supabase.from('logos').update({ is_active: 0 }).neq('id', -1); } catch (e) {}
+
+    // 2. Set target logo active = 1
+    db.run('UPDATE logos SET is_active = 1 WHERE id = ? OR id = ? OR logo_path LIKE ?', [id, isNaN(numId) ? -1 : numId, `%${id}%`]);
+    try {
+      if (!isNaN(numId)) await supabase.from('logos').update({ is_active: 1 }).eq('id', numId);
+      await supabase.from('logos').update({ is_active: 1 }).eq('id', id);
+    } catch (e) {}
+
+    if (Array.isArray(localStore.data.logos)) {
+      localStore.data.logos.forEach((l: any) => {
+        l.is_active = (String(l.id) === String(id) || l.logo_path?.includes(id)) ? 1 : 0;
+      });
+    }
+
+    res.json({ success: true, message: 'Brand logo activated successfully!' });
   } catch (e) {
+    console.error('Activate logo error:', e);
     res.status(500).json({ error: 'Failed to activate logo' });
   }
-});
+};
+
+app.post('/api/set-active-logo/:id', setLogoActiveHandler);
+app.post('/api/activate-logo/:id', setLogoActiveHandler);
+app.post('/api/logos/activate/:id', setLogoActiveHandler);
 
 // 5. Delete Specific Logo (Admin Dashboard)
 app.delete('/api/delete-logo/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
+  const numId = parseInt(id, 10);
+
   try {
     try { await supabase.from('logos').delete().eq('id', id); } catch(e) {}
-    db.run('DELETE FROM logos WHERE id = ?', [id], () => {
+    db.run('DELETE FROM logos WHERE id = ? OR id = ?', [id, isNaN(numId) ? -1 : numId], () => {
+      // Ensure at least one logo remains active if any logos exist
+      db.run('UPDATE logos SET is_active = 1 WHERE id = (SELECT id FROM logos ORDER BY id DESC LIMIT 1) AND NOT EXISTS (SELECT 1 FROM logos WHERE is_active = 1)');
       res.json({ success: true, message: 'Logo deleted successfully!' });
     });
   } catch (e) {
