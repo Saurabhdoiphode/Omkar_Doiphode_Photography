@@ -2075,21 +2075,43 @@
                     });
                 }
 
-                // Render Detailed Package Cards Breakdown
+                // Render Detailed Package Cards Breakdown (6 PACKAGES MATCHING CLIENT PORTAL 1:1)
                 const pkgCardsContainer = document.getElementById('analyticsPackageCards');
                 if (pkgCardsContainer) {
-                    const allPackageTypes = ['Marriage Package', 'Pre-Wedding Shoot', 'Baby Shoot', 'Events & Lifestyle', 'Photoshoot'];
-                    const packageIcons = { 'Marriage Package': '💍', 'Pre-Wedding Shoot': '💑', 'Baby Shoot': '👶', 'Events & Lifestyle': '🎉', 'Photoshoot': '📸' };
+                    const allPackageTypes = [
+                        'Marriage Package',
+                        'Pre-Wedding Shoot',
+                        'Baby Shoot',
+                        'Birthday Shoot',
+                        'Events & Lifestyle',
+                        'Photoshoot'
+                    ];
+
+                    const packageIcons = {
+                        'Marriage Package': '💍',
+                        'Pre-Wedding Shoot': '💑',
+                        'Baby Shoot': '👶',
+                        'Birthday Shoot': '🎂',
+                        'Events & Lifestyle': '🎉',
+                        'Photoshoot': '📸'
+                    };
 
                     pkgCardsContainer.innerHTML = allPackageTypes.map(pkgName => {
-                        const totalForPkg = allBookings.filter(b => b.event_type === pkgName).length || (pkgMap[pkgName] || 0);
-                        const confForPkg = allBookings.filter(b => b.event_type === pkgName && b.status === 'confirmed').length;
-                        const pendForPkg = allBookings.filter(b => b.event_type === pkgName && b.status === 'pending').length;
+                        const isMatch = (bType) => {
+                            if (!bType) return false;
+                            const cleanB = String(bType).toLowerCase().replace(/[^\w\s]/gi, '').trim();
+                            const cleanP = String(pkgName).toLowerCase().replace(/[^\w\s]/gi, '').trim();
+                            return cleanB.includes(cleanP) || cleanP.includes(cleanB);
+                        };
+
+                        const totalForPkg = allBookings.filter(b => isMatch(b.event_type)).length || (pkgMap[pkgName] || 0);
+                        const confForPkg = allBookings.filter(b => isMatch(b.event_type) && b.status === 'confirmed').length;
+                        const pendForPkg = allBookings.filter(b => isMatch(b.event_type) && b.status === 'pending').length;
                         const icon = packageIcons[pkgName] || '📷';
                         const sharePct = totalReqs > 0 ? Math.round((totalForPkg / totalReqs) * 100) : 0;
 
                         return `
-                            <div style="background:#FFFFFF; border:1.5px solid #E2E8F0; border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.03); display:flex; flex-direction:column; justify-space-between;">
+                            <div style="background:#FFFFFF; border:1.5px solid #E2E8F0; border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.03); display:flex; flex-direction:column; justify-content:space-between;">
                                 <div>
                                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                                         <span style="font-size:24px;">${icon}</span>
