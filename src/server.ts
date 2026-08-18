@@ -229,12 +229,16 @@ try {
       } else if (sql.includes('UPDATE logos SET is_active = 1')) {
         const targetId = args[0];
         localStore.data.logos.forEach(l => {
-          l.is_active = String(l.id) === String(targetId) ? 1 : 0;
+          l.is_active = (String(l.id).trim() === String(targetId).trim() || String(l.logo_path) === String(targetId) || String(l.filepath) === String(targetId)) ? 1 : 0;
         });
         localStore.save();
       } else if (sql.includes('DELETE FROM logos')) {
         const targetId = args[0];
-        localStore.data.logos = localStore.data.logos.filter(l => String(l.id) !== String(targetId));
+        localStore.data.logos = localStore.data.logos.filter(l => 
+          String(l.id).trim() !== String(targetId).trim() && 
+          String(l.logo_path) !== String(targetId) && 
+          String(l.filepath) !== String(targetId)
+        );
         localStore.save();
       }
 
