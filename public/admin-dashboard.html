@@ -1354,11 +1354,19 @@
             const tbody = document.getElementById('bookingsTableBody');
             let filtered = [...allBookings];
 
-            // Sort newest requests first (highest ID first)
-            filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
-
-            if (currentFilter !== 'all') {
+            if (currentFilter === 'confirmed') {
+                filtered = filtered.filter(b => b.status === 'confirmed');
+                // Sort confirmed bookings by upcoming event date in ASCENDING order (earliest date first)
+                filtered.sort((a, b) => {
+                    const dateA = a.booking_date ? new Date(a.booking_date).getTime() : 0;
+                    const dateB = b.booking_date ? new Date(b.booking_date).getTime() : 0;
+                    return dateA - dateB;
+                });
+            } else if (currentFilter !== 'all') {
                 filtered = filtered.filter(b => b.status === currentFilter);
+                filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
+            } else {
+                filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
             }
 
             const totalFilteredCount = filtered.length;
@@ -2026,7 +2034,13 @@
                 // Render Confirmed Shoots Log Table (NO REVENUE/PRICE COLUMN)
                 const tableBox = document.getElementById('analyticsConfirmedTable');
                 if (tableBox) {
-                    const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
+                    const confirmedBookings = allBookings
+                        .filter(b => b.status === 'confirmed')
+                        .sort((a, b) => {
+                            const dateA = a.booking_date ? new Date(a.booking_date).getTime() : 0;
+                            const dateB = b.booking_date ? new Date(b.booking_date).getTime() : 0;
+                            return dateA - dateB;
+                        });
                     if (confirmedBookings.length === 0) {
                         tableBox.innerHTML = '<div style="font-size:13px; color:#64748B;">No confirmed shoots yet. Click "Confirm Booking" on pending requests to lock dates here!</div>';
                     } else {
