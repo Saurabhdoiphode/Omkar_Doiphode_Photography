@@ -1815,14 +1815,74 @@
                 font-size: 2.1rem !important;
             }
 
-            /* Calendar Grid on Mobile */
-            .calendar-grid {
-                gap: 3px !important;
+            /* Client Availability Calendar Mobile Responsiveness & Alignment Fix */
+            .calendar-box {
+                padding: 1.2rem 0.6rem !important;
+                border-radius: 14px !important;
             }
-            .calendar-day {
-                padding: 8px 2px !important;
+
+            .calendar-header {
+                margin-bottom: 1rem !important;
+                padding-bottom: 0.8rem !important;
+            }
+
+            .calendar-month {
+                font-size: 1.25rem !important;
+                font-weight: 800 !important;
+            }
+
+            .calendar-nav {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 1.1rem !important;
+            }
+
+            .calendar-weekdays {
+                display: grid !important;
+                grid-template-columns: repeat(7, 1fr) !important;
+                gap: 4px !important;
                 font-size: 11px !important;
-                border-radius: 6px !important;
+                font-weight: 800 !important;
+                color: #475569 !important;
+                letter-spacing: 0px !important;
+                margin-bottom: 0.6rem !important;
+                text-align: center !important;
+            }
+
+            .calendar-dates {
+                display: grid !important;
+                grid-template-columns: repeat(7, 1fr) !important;
+                gap: 4px !important;
+            }
+
+            .date-cell {
+                height: 38px !important;
+                font-size: 12.5px !important;
+                font-weight: 800 !important;
+                border-radius: 8px !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            .date-cell.disabled {
+                background-color: #F8FAFC !important;
+                color: #94A3B8 !important;
+                border: 1px solid #E2E8F0 !important;
+                opacity: 0.8 !important;
+            }
+
+            .calendar-legend {
+                margin-top: 1rem !important;
+                padding-top: 0.8rem !important;
+                gap: 10px !important;
+                justify-content: center !important;
+            }
+
+            .legend-item {
+                font-size: 12px !important;
+                font-weight: 700 !important;
             }
 
             /* Before & After Color Grading Slider */
@@ -2668,8 +2728,10 @@
             // Render Blank padding cells for days before the 1st
             for (let i = 0; i < firstDayIndex; i++) {
                 const emptyCell = document.createElement('div');
-                emptyCell.className = 'date-cell disabled';
-                emptyCell.style.opacity = '0.1';
+                emptyCell.className = 'date-cell empty-filler';
+                emptyCell.style.background = 'transparent';
+                emptyCell.style.border = 'none';
+                emptyCell.style.pointerEvents = 'none';
                 datesContainer.appendChild(emptyCell);
             }
 
