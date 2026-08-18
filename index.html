@@ -1339,6 +1339,10 @@
             box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
             border: 1.5px solid var(--accent-gold);
             animation: fadeIn 0.4s ease-out;
+            width: 100%;
+            max-width: 540px;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .booking-form-title {
@@ -1358,18 +1362,24 @@
             font-weight: 600;
             color: var(--dark-charcoal);
             margin-bottom: 1.5rem;
+            word-break: break-word;
+            box-sizing: border-box;
         }
 
         .booking-form {
             display: flex;
             flex-direction: column;
             gap: 1.2rem;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .form-group label {
@@ -1382,6 +1392,9 @@
 
         .form-group input,
         .form-group select {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             padding: 12px 16px;
             border: 1.5px solid #E2E8F0;
             border-radius: 8px;
@@ -1407,6 +1420,9 @@
             font-size: 0.88rem;
             color: var(--dark-charcoal);
             line-height: 1.5;
+            width: 100%;
+            box-sizing: border-box;
+            word-break: break-word;
         }
 
         .form-actions {
@@ -1570,6 +1586,30 @@
             .track-input-group button {
                 width: 100% !important;
             }
+            /* Booking Form Wrapper Mobile Alignment */
+            .booking-form-wrapper {
+                padding: 1.2rem 1rem !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                margin: 0 auto !important;
+            }
+            .booking-date-display {
+                font-size: 0.85rem !important;
+                padding: 8px 10px !important;
+                word-break: break-word !important;
+            }
+            .form-actions {
+                flex-direction: column !important;
+                gap: 0.6rem !important;
+                width: 100% !important;
+            }
+            .submit-btn, .cancel-btn {
+                width: 100% !important;
+                padding: 12px !important;
+                text-align: center !important;
+                flex: none !important;
+            }
+
             .ba-container {
                 height: 380px !important;
             }
