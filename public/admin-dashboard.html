@@ -770,7 +770,19 @@
             font-size: 10px;
         }
 
+        /* Base Visibility Rules for Desktop vs Mobile */
+        .mobile-only-cards {
+            display: none !important;
+        }
+
+        .table-responsive {
+            display: block !important;
+        }
+
         @media (min-width: 769px) {
+            .table-responsive {
+                display: block !important;
+            }
             .mobile-only-cards {
                 display: none !important;
             }
