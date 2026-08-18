@@ -16,8 +16,8 @@ const app = express();
 const PORT = 3001;
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
@@ -342,6 +342,30 @@ app.post('/api/login', (req, res) => {
 const memoryStorageJS = multer.memoryStorage();
 const uploadMemoryJS = multer({ storage: memoryStorageJS, limits: { fileSize: 10 * 1024 * 1024 } });
 
+const saveLogoDataUrlJS = (logoDataUrl, res) => {
+    db.run('UPDATE logos SET is_active = 0', () => {
+        db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoDataUrl], (dbErr) => {
+            if (dbErr) {
+                return res.status(500).json({ success: false, error: 'Database error saving logo' });
+            }
+            res.json({ 
+                success: true, 
+                message: 'Logo uploaded and set as active successfully',
+                logo_path: logoDataUrl,
+                filepath: logoDataUrl 
+            });
+        });
+    });
+};
+
+app.post(['/api/upload-logo-json', '/api/logos/upload-json'], (req, res) => {
+    const logoData = req.body?.logoData || req.body?.logoBase64 || req.body?.logo_path;
+    if (!logoData) {
+        return res.status(400).json({ success: false, error: 'No logo image data provided.' });
+    }
+    saveLogoDataUrlJS(logoData, res);
+});
+
 // 2. Upload Logo (Memory Storage Base64 Engine)
 app.post('/api/upload-logo', (req, res) => {
     uploadMemoryJS.single('logo')(req, res, (err) => {
@@ -354,19 +378,7 @@ app.post('/api/upload-logo', (req, res) => {
             const base64Data = req.file.buffer.toString('base64');
             const logoPath = `data:${mime};base64,${base64Data}`;
 
-            db.run('UPDATE logos SET is_active = 0', () => {
-                db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], (dbErr) => {
-                    if (dbErr) {
-                        return res.status(500).json({ success: false, error: 'Database error saving logo' });
-                    }
-                    res.json({ 
-                        success: true, 
-                        message: 'Logo uploaded and set as active successfully',
-                        logo_path: logoPath,
-                        filepath: logoPath 
-                    });
-                });
-            });
+            saveLogoDataUrlJS(logoPath, res);
         } catch (e) {
             res.status(500).json({ success: false, error: 'Failed to process logo image' });
         }

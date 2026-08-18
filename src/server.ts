@@ -20,8 +20,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Body Parsers & Static Files
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
@@ -610,6 +610,40 @@ app.get('/api/logo-history', async (req: Request, res: Response) => {
   }
 });
 
+const saveLogoDataUrl = async (logoDataUrl: string, res: Response) => {
+  try {
+    // Reset all previous active logos to 0
+    db.run('UPDATE logos SET is_active = 0');
+    try { await supabase.from('logos').update({ is_active: 0 }).neq('id', -1); } catch (e) {}
+
+    // Insert new logo as active (is_active = 1)
+    try {
+      await supabase.from('logos').insert([{ logo_path: logoDataUrl, is_active: 1 }]);
+    } catch (e) {}
+
+    db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoDataUrl], function (this: any) {
+      const newId = this ? this.lastID : Date.now();
+      if (Array.isArray(localStore.data.logos)) {
+        localStore.data.logos.forEach((l: any) => l.is_active = 0);
+        localStore.data.logos.push({ id: newId, logo_path: logoDataUrl, filepath: logoDataUrl, is_active: 1 });
+      }
+      localStore.save();
+      return res.json({ success: true, message: 'Logo uploaded and set as active successfully!', logo_path: logoDataUrl, filepath: logoDataUrl });
+    });
+  } catch (e) {
+    console.error('Save logo error:', e);
+    return res.status(500).json({ success: false, error: 'Failed to save logo image.' });
+  }
+};
+
+app.post(['/api/upload-logo-json', '/api/logos/upload-json'], async (req: Request, res: Response) => {
+  const logoData = req.body?.logoData || req.body?.logoBase64 || req.body?.logo_path;
+  if (!logoData) {
+    return res.status(400).json({ success: false, error: 'No logo image data provided.' });
+  }
+  await saveLogoDataUrl(logoData, res);
+});
+
 // 3. Upload Brand Logo (Memory Storage Base64 Engine — Zero Disk Errors)
 app.post('/api/upload-logo', (req: Request, res: Response) => {
   uploadMemoryLogo.single('logo')(req, res, async (err: any) => {
@@ -633,24 +667,7 @@ app.post('/api/upload-logo', (req: Request, res: Response) => {
         fs.writeFileSync(p2, req.file.buffer);
       } catch(e) {}
 
-      // Reset all previous active logos to 0
-      db.run('UPDATE logos SET is_active = 0');
-      try { await supabase.from('logos').update({ is_active: 0 }).neq('id', -1); } catch (e) {}
-
-      // Insert new logo as active (is_active = 1)
-      try {
-        await supabase.from('logos').insert([{ logo_path: logoPath, is_active: 1 }]);
-      } catch (e) {}
-
-      db.run('INSERT INTO logos (logo_path, is_active) VALUES (?, 1)', [logoPath], function (this: any) {
-        const newId = this ? this.lastID : Date.now();
-        if (Array.isArray(localStore.data.logos)) {
-          localStore.data.logos.forEach((l: any) => l.is_active = 0);
-          localStore.data.logos.push({ id: newId, logo_path: logoPath, filepath: logoPath, is_active: 1 });
-        }
-        localStore.save();
-        return res.json({ success: true, message: 'Logo uploaded and set as active successfully!', logo_path: logoPath, filepath: logoPath });
-      });
+      await saveLogoDataUrl(logoPath, res);
     } catch (e) {
       console.error('Upload logo error:', e);
       res.status(500).json({ success: false, error: 'Failed to process logo image' });

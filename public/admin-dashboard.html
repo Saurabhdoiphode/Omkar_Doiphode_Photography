@@ -1912,9 +1912,57 @@
                 uploadMsg.style.background = '#FEF3C7';
                 uploadMsg.style.color = '#92400E';
                 uploadMsg.style.border = '1px solid #FCD34D';
-                uploadMsg.innerHTML = '⏳ Uploading and activating brand logo... Please wait...';
+                uploadMsg.innerHTML = '⏳ Processing and activating brand logo... Please wait...';
             }
 
+            try {
+                // 1. Convert image file to Base64 Data URL in browser memory
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result;
+                    
+                    try {
+                        // 2. Post JSON Base64 payload (Zero Disk / Zero Multipart Overhead)
+                        const response = await fetch('/api/upload-logo-json', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ logoData: base64Data })
+                        });
+                        const result = await response.json();
+
+                        if (result.success || response.ok) {
+                            if (uploadMsg) {
+                                uploadMsg.style.background = '#F0FDF4';
+                                uploadMsg.style.color = '#15803D';
+                                uploadMsg.style.border = '1px solid #86EFAC';
+                                uploadMsg.innerHTML = '✅ Brand logo uploaded and activated successfully!';
+                                setTimeout(() => { uploadMsg.style.display = 'none'; }, 4000);
+                            }
+                            await loadLogoHistory();
+                        } else {
+                            // Fallback to FormData endpoint if JSON fails
+                            await uploadFileFormData(file);
+                        }
+                    } catch (jsonErr) {
+                        console.warn('JSON logo upload failed, attempting FormData fallback:', jsonErr);
+                        await uploadFileFormData(file);
+                    }
+                };
+                reader.onerror = function() {
+                    uploadFileFormData(file);
+                };
+                reader.readAsDataURL(file);
+            } catch (err) {
+                console.error('uploadFile error:', err);
+                uploadFileFormData(file);
+            } finally {
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput) fileInput.value = '';
+            }
+        }
+
+        async function uploadFileFormData(file) {
+            const uploadMsg = document.getElementById('uploadMessage');
             try {
                 const formData = new FormData();
                 formData.append('logo', file);
@@ -1940,16 +1988,13 @@
                     }
                 }
             } catch (err) {
-                console.error('uploadFile error:', err);
+                console.error('uploadFileFormData error:', err);
                 if (uploadMsg) {
                     uploadMsg.style.background = '#FEE2E2';
                     uploadMsg.style.color = '#991B1B';
                     uploadMsg.style.border = '1px solid #FCA5A5';
-                    uploadMsg.innerHTML = '❌ Network error uploading logo';
+                    uploadMsg.innerHTML = '❌ Logo Upload Error: Please select a valid PNG or JPG image file.';
                 }
-            } finally {
-                const fileInput = document.getElementById('fileInput');
-                if (fileInput) fileInput.value = '';
             }
         }
         function escapeHtml(str) {
