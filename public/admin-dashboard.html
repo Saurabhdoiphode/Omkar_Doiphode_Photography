@@ -1185,23 +1185,23 @@
                 <h2 class="section-title">👤 Omkar Profile Photo (About Us Section)</h2>
                 <p style="font-size:13px; color:#475569; font-weight:500; margin-bottom:1.5rem;">Upload, change, or delete Omkar's circular profile photo displayed in the About Us section.</p>
 
-                <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; background:#F8FAFC; padding:1.8rem; border-radius:16px; border:1px solid #E2E8F0;">
-                    <div style="text-align:center;">
-                        <img id="adminProfilePreviewImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Profile Preview" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid var(--accent-gold); box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+                <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; background:#F8FAFC; padding:1.5rem; border-radius:16px; border:1px solid #E2E8F0; width:100%; box-sizing:border-box; overflow:hidden;">
+                    <div style="text-align:center; flex-shrink:0; margin:0 auto;">
+                        <img id="adminProfilePreviewImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Profile Preview" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--accent-gold); box-shadow:0 4px 15px rgba(0,0,0,0.1);">
                         <div style="font-size:11px; font-weight:700; color:#475569; margin-top:6px;">Current Photo</div>
                     </div>
 
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <input type="file" id="omkarPhotoFileInput" accept="image/*" style="font-size:13px; color:#0F172A; font-weight:600;">
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="uploadOmkarProfilePhoto()" class="btn-confirm" style="background:#16A34A; color:white; padding:8px 16px; font-weight:700; border:none; border-radius:8px; cursor:pointer;">
-                                📷 Upload / Change Photo
+                    <div style="display:flex; flex-direction:column; gap:12px; flex:1; min-width:240px; width:100%; box-sizing:border-box;">
+                        <input type="file" id="omkarPhotoFileInput" accept="image/*" style="font-size:12.5px; color:#0F172A; font-weight:600; width:100%; max-width:100%; box-sizing:border-box;">
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; width:100%; box-sizing:border-box;">
+                            <button onclick="uploadOmkarProfilePhoto()" class="btn-confirm" style="flex:1 1 130px; background:#16A34A; color:white; padding:9px 12px; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-size:12px; text-align:center; box-shadow:0 2px 6px rgba(22,163,74,0.2);">
+                                📷 Upload Photo
                             </button>
-                            <button onclick="deleteOmkarProfilePhoto()" class="btn-confirm" style="background:#DC2626; color:white; padding:8px 16px; font-weight:700; border:none; border-radius:8px; cursor:pointer;">
+                            <button onclick="deleteOmkarProfilePhoto()" class="btn-confirm" style="flex:1 1 120px; background:#DC2626; color:white; padding:9px 12px; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-size:12px; text-align:center; box-shadow:0 2px 6px rgba(220,38,38,0.2);">
                                 🗑️ Delete Photo
                             </button>
                         </div>
-                        <div id="omkarPhotoStatus" style="font-size:12px; font-weight:700; color:#15803D;"></div>
+                        <div id="omkarPhotoStatus" style="font-size:12px; font-weight:700; color:#15803D; word-break:break-word;"></div>
                     </div>
                 </div>
             </div>
