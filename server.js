@@ -133,6 +133,20 @@ function initializeDatabase() {
         )
     `);
 
+    // Logos table used by all /api/*-logo endpoints
+    db.run(`
+        CREATE TABLE IF NOT EXISTS logos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            logo_path TEXT NOT NULL,
+            filepath TEXT,
+            is_active INTEGER DEFAULT 0,
+            uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+    // Migrate legacy logos table: add missing columns if upgrading from old schema
+    db.run('ALTER TABLE logos ADD COLUMN filepath TEXT', () => {});
+    db.run('ALTER TABLE logos ADD COLUMN is_active INTEGER DEFAULT 0', () => {});
+
     // Create profile_photo table for About Us section
     db.run(`
         CREATE TABLE IF NOT EXISTS profile_photo (

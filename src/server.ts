@@ -310,17 +310,6 @@ try {
       } else if (sql.includes('DELETE FROM profile_photo')) {
         localStore.data.profile_photo = [];
         localStore.save();
-      } else if (sql.includes('INTO logos')) {
-        const pathVal = args[0];
-        localStore.data.logos.forEach(l => l.is_active = 0);
-        localStore.data.logos.push({
-          id: Date.now(),
-          logo_path: pathVal,
-          filepath: pathVal,
-          is_active: 1,
-          uploaded_at: new Date().toISOString()
-        });
-        localStore.save();
       } else if (sql.includes('UPDATE logos SET is_active = 0')) {
         localStore.data.logos.forEach(l => l.is_active = 0);
         localStore.save();
@@ -449,9 +438,15 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS logos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       logo_path TEXT NOT NULL,
+      filepath TEXT,
+      is_active INTEGER DEFAULT 0,
       uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migrate legacy logos table: add missing columns if upgrading from old schema
+  db.run('ALTER TABLE logos ADD COLUMN filepath TEXT', () => {});
+  db.run('ALTER TABLE logos ADD COLUMN is_active INTEGER DEFAULT 0', () => {});
 
   db.run(`
     CREATE TABLE IF NOT EXISTS profile_photo (
