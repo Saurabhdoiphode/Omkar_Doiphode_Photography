@@ -892,20 +892,16 @@
 
         .portfolio-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.2rem;
-            margin-bottom: 3rem;
-        }
-
-        @media (max-width: 1024px) {
-            .portfolio-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto 3rem auto;
         }
 
         @media (max-width: 640px) {
             .portfolio-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.8rem !important;
             }
         }
 
@@ -1078,8 +1074,8 @@
             }
 
             .portfolio-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
             }
 
             .section-title {
