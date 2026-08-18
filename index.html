@@ -2762,9 +2762,10 @@
             return `${year}-${m}-${d}`;
         }
 
-        // Get Today's YYYY-MM-DD
+        // Get Today's YYYY-MM-DD (Dynamically Evaluated)
         function getTodayStr() {
-            return formatDateStr(now.getFullYear(), now.getMonth(), now.getDate());
+            const d = new Date();
+            return formatDateStr(d.getFullYear(), d.getMonth(), d.getDate());
         }
 
         // Load Logo from Server with Fallback Handling

@@ -1664,6 +1664,13 @@
                 grid.appendChild(blank);
             }
 
+            // Calculate today's YYYY-MM-DD
+            const tDate = new Date();
+            const tYr = tDate.getFullYear();
+            const tMo = String(tDate.getMonth() + 1).padStart(2, '0');
+            const tDy = String(tDate.getDate()).padStart(2, '0');
+            const todayStr = `${tYr}-${tMo}-${tDy}`;
+
             // Days cells
             for (let d = 1; d <= totalDays; d++) {
                 const mStr = String(adminMonth + 1).padStart(2, '0');
@@ -1672,15 +1679,25 @@
 
                 const cell = document.createElement('div');
                 cell.className = 'admin-calendar-cell';
-                cell.title = `${dateStr} - Click to toggle availability`;
 
                 const status = adminCalendarStatuses[dateStr] || 'available';
 
-                if (status === 'blocked') {
+                // Check if past date
+                if (dateStr < todayStr) {
+                    cell.style.background = '#334155';
+                    cell.style.color = '#94A3B8';
+                    cell.style.border = '1px solid #475569';
+                    cell.style.opacity = '0.5';
+                    cell.style.cursor = 'not-allowed';
+                    cell.title = `${dateStr} - Past Date (Disabled)`;
+                    cell.innerHTML = `<span>${d}</span>`;
+                    cell.onclick = () => alert('Past dates cannot be modified.');
+                } else if (status === 'blocked') {
                     cell.style.background = '#FEE2E2';
                     cell.style.color = '#991B1B';
                     cell.style.border = '1.5px solid #FCA5A5';
                     cell.style.fontWeight = '800';
+                    cell.title = `${dateStr} - Blocked / Confirmed`;
                     cell.innerHTML = `<span>${d}</span><span class="day-dot">🔴</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'blocked');
                 } else if (status === 'pending') {
@@ -1688,6 +1705,7 @@
                     cell.style.color = '#92400E';
                     cell.style.border = '1.5px solid #FCD34D';
                     cell.style.fontWeight = '800';
+                    cell.title = `${dateStr} - Pending Request`;
                     cell.innerHTML = `<span>${d}</span><span class="day-dot">⏳</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'pending');
                 } else {
@@ -1695,6 +1713,7 @@
                     cell.style.color = '#166534';
                     cell.style.border = '1.5px solid #86EFAC';
                     cell.style.fontWeight = '800';
+                    cell.title = `${dateStr} - Click to toggle availability`;
                     cell.innerHTML = `<span>${d}</span><span class="day-dot">🟢</span>`;
                     cell.onclick = () => handleAdminDateClick(dateStr, 'available');
                 }
