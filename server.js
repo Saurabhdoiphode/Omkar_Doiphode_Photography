@@ -557,7 +557,7 @@ app.post('/api/bookings', async (req, res) => {
         console.log(alertMsg);
         console.log('==================================================\n');
 
-        const whatsappAlertUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(alertMsg)}`;
+        const whatsappAlertUrl = `https://api.whatsapp.com/send?phone=919146929608&text=${encodeURIComponent(alertMsg)}`;
 
         res.json({
             success: true,
