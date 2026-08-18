@@ -97,6 +97,21 @@ const memoryStorage = multer.memoryStorage();
 const uploadMemoryLogo = multer({ storage: memoryStorage, limits: { fileSize: 10 * 1024 * 1024 } });
 const uploadMemoryProfile = multer({ storage: memoryStorage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+const galleryStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    try {
+      if (!fs.existsSync(galleryDir)) fs.mkdirSync(galleryDir, { recursive: true });
+      if (!fs.existsSync(publicGalleryDir)) fs.mkdirSync(publicGalleryDir, { recursive: true });
+    } catch(e) {}
+    cb(null, galleryDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '.jpg') || '.jpg';
+    cb(null, `gallery_${Date.now()}${ext}`);
+  }
+});
+const uploadGallery = multer({ storage: galleryStorage, limits: { fileSize: 25 * 1024 * 1024 } });
+
 // Supabase Cloud Database Client
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wrirqfaewmuukxlowiuj.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LuEEzmcfbyMNCvfEqeykPg_ekpOCUFO';
@@ -721,34 +736,36 @@ app.get('/api/omkar-photo', async (req: Request, res: Response) => {
 
 // 4. Upload Profile Photo
 app.post('/api/upload-omkar-photo', (req: Request, res: Response) => {
-  uploadProfile.single('profile_photo')(req, res, async (err: any) => {
-    if (err) {
+  uploadMemoryProfile.single('profile_photo')(req, res, async (err: any) => {
+    if (err || !req.file) {
       console.error('Profile photo upload error:', err);
-      return res.status(400).json({ success: false, error: 'Profile photo upload error: ' + (err.message || 'Invalid file') });
+      return res.status(400).json({ success: false, error: 'Please select a valid image file.' });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: 'No photo file provided' });
-    }
-
-    const filename = req.file.filename;
-    const photoPath = `/uploads/profile/${filename}`;
-
     try {
-      const srcFile = path.join(profileDir, filename);
-      const destFile = path.join(publicProfileDir, filename);
-      fs.copyFileSync(srcFile, destFile);
-    } catch (e) {}
+      const mime = req.file.mimetype || 'image/jpeg';
+      const base64Data = req.file.buffer.toString('base64');
+      const photoPath = `data:${mime};base64,${base64Data}`;
 
-    try {
+      try {
+        const ext = path.extname(req.file.originalname || '.jpg') || '.jpg';
+        const filename = `profile_${Date.now()}${ext}`;
+        const p1 = path.join(profileDir, filename);
+        const p2 = path.join(publicProfileDir, filename);
+        fs.writeFileSync(p1, req.file.buffer);
+        fs.writeFileSync(p2, req.file.buffer);
+      } catch(e) {}
+
       try {
         await supabase.from('profile_photo').insert([{ photo_path: photoPath }]);
       } catch (e) {}
 
-      db.run('INSERT INTO profile_photo (photo_path) VALUES (?)', [photoPath], () => {
-        localStore.data.profile_photo = [{ id: Date.now(), photo_path: photoPath, filepath: photoPath }];
-        localStore.save();
-        res.json({ success: true, message: 'Profile photo updated successfully!', photo_path: photoPath, photoUrl: photoPath });
+      db.run('DELETE FROM profile_photo', () => {
+        db.run('INSERT INTO profile_photo (photo_path, filepath) VALUES (?, ?)', [photoPath, photoPath], () => {
+          localStore.data.profile_photo = [{ id: Date.now(), photo_path: photoPath, filepath: photoPath }];
+          localStore.save();
+          res.json({ success: true, message: 'Profile photo updated successfully!', photo_path: photoPath, photoUrl: photoPath });
+        });
       });
     } catch (e) {
       console.error('Save profile photo DB error:', e);
