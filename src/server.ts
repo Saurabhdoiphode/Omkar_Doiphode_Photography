@@ -1498,7 +1498,6 @@ app.get(['/api/galleries/:code/photo/:index', '/api/gallery/:code/photo/:index']
   if (!buf.length) return res.status(404).end();
 
   res.setHeader('Content-Type', mime);
-  res.setHeader('Content-Length', String(buf.length));
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.send(buf);
 });
