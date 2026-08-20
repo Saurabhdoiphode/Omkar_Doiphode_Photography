@@ -1022,9 +1022,9 @@
                         <button class="filter-btn" onclick="filterBookings('pending', this)">Pending ⏳</button>
                         <button class="filter-btn" onclick="filterBookings('confirmed', this)">Confirmed ✅</button>
                         <button class="filter-btn" onclick="filterBookings('blocked', this)">Blocked 🔴</button>
-                        <button id="refreshBookingsBtn" onclick="loadBookings(true)" style="background:#0F172A; color:#D4A574; border:1px solid #D4A574; font-weight:700; padding:8px 18px; border-radius:20px; cursor:pointer; transition:all 0.25s ease; display:inline-flex; align-items:center; gap:6px;">
-                            <span>🔄</span>
-                            <span>Refresh Requests</span>
+                        <button id="refreshBookingsBtn" onclick="loadBookings(true)" style="background:#0F172A !important; color:#D4A574 !important; border:1.5px solid #D4A574 !important; font-weight:800 !important; padding:8px 18px !important; border-radius:20px !important; cursor:pointer !important; transition:all 0.25s ease !important; display:inline-flex !important; align-items:center !important; gap:6px !important; box-shadow:0 2px 8px rgba(15,23,42,0.3) !important;">
+                            <span style="font-size:15px !important;">🔄</span>
+                            <span style="color:#D4A574 !important; font-weight:800 !important; font-size:13.5px !important; letter-spacing:0.3px !important;">Refresh Requests</span>
                         </button>
                     </div>
                 </div>
@@ -1472,7 +1472,7 @@
             const btn = document.getElementById('refreshBookingsBtn');
 
             if (btn) {
-                btn.innerHTML = '<span>⏳</span><span>Refreshing...</span>';
+                btn.innerHTML = '<span style="font-size:15px !important;">⏳</span><span style="color:#D4A574 !important; font-weight:800 !important; font-size:13.5px !important;">Refreshing...</span>';
                 btn.style.opacity = '0.75';
                 btn.disabled = true;
             }
@@ -1510,7 +1510,7 @@
                 if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#EF4444;">Failed to load bookings from server.</td></tr>`;
             } finally {
                 if (btn) {
-                    btn.innerHTML = '<span>🔄</span><span>Refresh Requests</span>';
+                    btn.innerHTML = '<span style="font-size:15px !important;">🔄</span><span style="color:#D4A574 !important; font-weight:800 !important; font-size:13.5px !important;">Refresh Requests</span>';
                     btn.style.opacity = '1';
                     btn.disabled = false;
                 }
