@@ -4,4 +4,3 @@ Disallow: /admin-dashboard.html
 Disallow: /api/
 
 Sitemap: https://omkardoiphodephotography.netlify.app/sitemap.xml
-Sitemap: https://omkar-doiphode-photography.onrender.com/sitemap.xml
