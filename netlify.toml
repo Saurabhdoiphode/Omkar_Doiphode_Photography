@@ -31,10 +31,9 @@
   to = "/admin-dashboard.html"
   status = 200
 
-[[redirects]]
-  from = "/sitemap.xml"
-  to = "/.netlify/functions/sitemap"
-  status = 200
+[[edge_functions]]
+  path = "/sitemap.xml"
+  function = "sitemap"
 
 [[redirects]]
   from = "/*"
