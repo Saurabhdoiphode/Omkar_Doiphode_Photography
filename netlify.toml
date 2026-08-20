@@ -1,13 +1,10 @@
 [build]
-  command = "echo 'Static site + serverless API - no build step required'"
+  command = "npm run build"
   functions = "functions"
   publish = "public"
 
 [functions]
   node_bundler = "esbuild"
-
-[[plugins]]
-  package = "./netlify/plugins/sitemap"
 
 [[redirects]]
   from = "/api/*"
