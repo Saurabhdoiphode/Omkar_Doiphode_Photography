@@ -123,6 +123,11 @@ const galleryStorage = multer.diskStorage({
 });
 const uploadGallery = multer({ storage: galleryStorage, limits: { fileSize: 25 * 1024 * 1024 } });
 
+// Memory Storage for gallery photos — returns self-contained data: URLs so photos
+// survive on serverless (Netlify function FS is read-only/ephemeral, so the old
+// /uploads/gallery/* folder approach could never persist there).
+const uploadMemoryGallery = multer({ storage: memoryStorage, limits: { fileSize: 25 * 1024 * 1024, files: 50 } });
+
 // Supabase Cloud Database Client
 // Publishable Supabase credentials. Hardcoded because Netlify env vars held a stale,
 // dead project URL (vymvhujftngqdfeyxwnu) that made every Supabase read return empty.
@@ -1310,13 +1315,28 @@ app.get('/api/services', async (req: Request, res: Response) => {
 });
 
 // 14. Bulk Gallery Photos Upload (Admin Dashboard Client Gallery Creator)
-app.post('/api/upload-gallery-photos', uploadGallery.array('photos', 50), (req: Request, res: Response) => {
+// Uses memory storage and returns self-contained data: URLs (no filesystem folders)
+// so uploads work on serverless where the function filesystem is read-only/ephemeral.
+app.post('/api/upload-gallery-photos', uploadMemoryGallery.array('photos', 50), (req: Request, res: Response) => {
   try {
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) {
       return res.status(400).json({ error: 'No photo files selected' });
     }
-    const fileUrls = files.map(f => `/uploads/gallery/${f.filename}`);
+    const fileUrls = files.map(f => `data:${f.mimetype || 'image/jpeg'};base64,${f.buffer.toString('base64')}`);
+
+    // Best-effort local disk copy (only useful for local dev; harmless on serverless)
+    try {
+      fs.mkdirSync(galleryDir, { recursive: true });
+      fs.mkdirSync(publicGalleryDir, { recursive: true });
+      files.forEach((f, i) => {
+        const ext = path.extname(f.originalname || '.jpg') || '.jpg';
+        const filename = `gallery_${Date.now()}_${i}${ext}`;
+        try { fs.writeFileSync(path.join(galleryDir, filename), f.buffer); } catch(e) {}
+        try { fs.writeFileSync(path.join(publicGalleryDir, filename), f.buffer); } catch(e) {}
+      });
+    } catch(e) {}
+
     res.json({ success: true, fileUrls, message: `${fileUrls.length} photo(s) uploaded successfully!` });
   } catch (e) {
     console.error('Gallery photos upload error:', e);
@@ -1363,7 +1383,81 @@ app.post('/api/galleries', async (req: Request, res: Response) => {
   }
 });
 
-// 16. Get Galleries List (Supports both private_galleries and gallery_items)
+// 16. Append Photos to Existing Private Client Gallery (Chunked upload support)
+// Lets the admin create a gallery with a few photos first, then push the rest in
+// small chunks — avoids the serverless ~10MB single-request body limit for large galleries.
+app.post('/api/galleries/:code/photos', async (req: Request, res: Response) => {
+  const codeUpper = String(req.params.code).trim().toUpperCase();
+  const incoming = Array.isArray(req.body?.photos)
+    ? (req.body.photos as any[]).filter(p => typeof p === 'string' && p.startsWith('data:') && p.trim().length > 100)
+    : [];
+  if (!codeUpper || incoming.length === 0) {
+    return res.status(400).json({ error: 'Gallery code and photos array required' });
+  }
+
+  const parseUrls = (raw: any): string[] => {
+    try {
+      const p = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(p) ? p.filter((x: any) => typeof x === 'string') : [String(p)];
+    } catch (e) {
+      return [String(raw)];
+    }
+  };
+
+  try {
+    let existing: string[] = [];
+
+    // 1. Read existing photos from Supabase Cloud
+    try {
+      const { data: g } = await supabase
+        .from('private_galleries')
+        .select('photo_urls')
+        .ilike('gallery_code', codeUpper)
+        .maybeSingle();
+      if (g && g.photo_urls) existing = parseUrls(g.photo_urls);
+    } catch (e) {}
+
+    // 2. Local DB fallback (and source of truth when Supabase row isn't seeded yet)
+    if (existing.length === 0) {
+      await new Promise<void>((resolve) => {
+        db.get('SELECT photo_urls FROM private_galleries WHERE UPPER(gallery_code) = UPPER(?)', [codeUpper], (_err, row: any) => {
+          if (row && row.photo_urls) existing = parseUrls(row.photo_urls);
+          resolve();
+        });
+      });
+    }
+
+    const seen = new Set(existing);
+    const merged = [...existing, ...incoming.filter(u => !seen.has(u))];
+    const photosJson = JSON.stringify(merged);
+
+    // 3. Update Supabase Cloud
+    try {
+      await supabase.from('private_galleries').update({ photo_urls: photosJson }).ilike('gallery_code', codeUpper);
+    } catch (e) {}
+
+    // 4. Update local DB + localStore
+    db.run(
+      'UPDATE private_galleries SET photo_urls = ? WHERE UPPER(gallery_code) = UPPER(?)',
+      [photosJson, codeUpper],
+      () => {
+        const lsG = Array.isArray(localStore.data.private_galleries)
+          ? localStore.data.private_galleries
+          : [];
+        const lsIdx = lsG.findIndex((x: any) => String(x.gallery_code).toUpperCase() === codeUpper);
+        if (lsIdx >= 0) lsG[lsIdx].photo_urls = photosJson;
+        localStore.save();
+
+        res.json({ success: true, count: merged.length, photoCount: merged.length, message: `${incoming.length} photo(s) appended to gallery ${codeUpper}.` });
+      }
+    );
+  } catch (e) {
+    console.error('Append gallery photos error:', e);
+    res.status(500).json({ error: 'Failed to update gallery photos' });
+  }
+});
+
+// 17. Get Galleries List (Supports both private_galleries and gallery_items)
 app.get('/api/galleries', async (req: Request, res: Response) => {
   try {
     let galleries: any[] = [];
@@ -1466,14 +1560,14 @@ app.post('/api/galleries/verify', async (req: Request, res: Response) => {
   }
 });
 
-// 18. Upload Single Gallery Image (Portfolio Section)
-app.post('/api/upload-gallery', uploadGallery.single('gallery_image'), async (req: Request, res: Response) => {
+// 18. Upload Single Gallery Image (Portfolio Section) — data: URL so it persists on serverless
+app.post(['/api/upload-gallery', '/api/gallery-upload'], uploadMemoryGallery.single('gallery_image'), async (req: Request, res: Response) => {
   const { title, category, badge } = req.body;
   if (!req.file || !title || !category) {
     return res.status(400).json({ error: 'Title, category, and image file are required' });
   }
 
-  const imageUrl = `/uploads/gallery/${req.file.filename}`;
+  const imageUrl = `data:${req.file.mimetype || 'image/jpeg'};base64,${req.file.buffer.toString('base64')}`;
 
   try {
     await supabase.from('gallery_items').insert([{ title, category, image_url: imageUrl, badge }]);

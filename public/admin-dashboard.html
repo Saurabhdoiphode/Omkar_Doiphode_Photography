@@ -1228,7 +1228,7 @@
                     </div>
 
                     <div>
-                        <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase; display:block; margin-bottom:6px;">📸 Select & Upload Photos or Entire Folder from Device</label>
+                        <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase;">📸 Select Photos or an Entire Folder from Device</label>
                         <div style="border: 2px dashed #D4A574; border-radius: 12px; padding: 1.8rem; text-align: center; background: #F8FAFC; margin-bottom: 10px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);">
                             <div style="font-size: 36px; margin-bottom: 4px;">📂</div>
                             <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 10px;">Select an entire photo folder OR pick individual images</div>
@@ -1253,8 +1253,8 @@
                     </div>
 
                     <div>
-                        <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase;">Uploaded Photo URLs (Auto-filled after selecting files)</label>
-                        <textarea id="gPhotos" required rows="3" placeholder='Photo URLs will appear here after selecting files above...' style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; background:#FFFFFF; color:#0F172A; border-radius:8px; font-family:monospace; font-size:12px; font-weight:600;"></textarea>
+                        <label style="font-size:12px; font-weight:800; color:#0F172A; text-transform:uppercase;">Embedded Photos — auto-filled after selecting files</label>
+                        <textarea id="gPhotos" required rows="3" placeholder='Photo list (auto-filled). Photos are compressed & embedded so gallery works on any hosting...' style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; background:#FFFFFF; color:#0F172A; border-radius:8px; font-family:monospace; font-size:12px; font-weight:600;"></textarea>
                     </div>
                     <button type="submit" class="btn-confirm" style="padding:12px 28px; background:#0F172A; color:#D4A574; font-weight:800; border:1.5px solid #D4A574; border-radius:8px; cursor:pointer; font-size:14px;">Create Gallery & Generate Passcode →</button>
                 </form>
@@ -2515,44 +2515,91 @@
         }
 
         // --- FEATURE 1: PRIVATE GALLERIES MANAGEMENT ---
+        // Compress an image client-side into a self-contained data: URL.
+        // Self-contained URLs survive on serverless hosting (no uploads/gallery folders),
+        // and the resize keeps each photo small enough to stay within serverless request limits.
+        function compressImageToDataUrl(file, maxDim, quality) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                img.onload = () => {
+                    try {
+                        let { width, height } = img;
+                        const scale = Math.min(1, (maxDim || 2000) / Math.max(width, height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round(width * scale));
+                        canvas.height = Math.max(1, Math.round(height * scale));
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        URL.revokeObjectURL(objectUrl);
+                        const isPng = /\.png$/i.test(file.name);
+                        const mime = isPng ? 'image/png' : 'image/jpeg';
+                        resolve(canvas.toDataURL(mime, isPng ? undefined : (quality || 0.85)));
+                    } catch (e) {
+                        URL.revokeObjectURL(objectUrl);
+                        reject(e);
+                    }
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    reject(new Error('Could not read image file: ' + file.name));
+                };
+                img.src = objectUrl;
+            });
+        }
+
+        function parseGalleryPhotoList(raw) {
+            try {
+                const arr = JSON.parse(raw);
+                return Array.isArray(arr) ? arr.filter(u => typeof u === 'string' && u) : [];
+            } catch (e) {
+                return String(raw || '').split(',').map(s => s.trim()).filter(Boolean);
+            }
+        }
+
         async function uploadSelectedGalleryPhotos(input) {
             const files = input.files;
             const statusDiv = document.getElementById('uploadPhotoStatus');
-            if (!files || files.length === 0) return;
+            if (!statusDiv || !files || files.length === 0) return;
 
-            // Filter only image files (.jpg, .jpeg, .png, .gif, .webp)
+            // Filter only decodable image types (.jpg, .jpeg, .png, .gif, .webp)
             const imageFiles = Array.from(files).filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name));
             if (imageFiles.length === 0) {
-                statusDiv.innerHTML = '⚠️ No valid image files found in the selected folder.';
+                statusDiv.style.color = '#DC2626';
+                statusDiv.innerHTML = '⚠️ No valid image files found (supported: JPG, PNG, GIF, WEBP).';
                 return;
             }
 
-            statusDiv.innerHTML = `⏳ Uploading ${imageFiles.length} photo(s)... Please wait.`;
-            const formData = new FormData();
+            const txt = document.getElementById('gPhotos');
+            const existing = new Set(parseGalleryPhotoList(txt.value));
+
+            statusDiv.style.color = '#15803D';
+            let failed = 0;
             for (let i = 0; i < imageFiles.length; i++) {
-                formData.append('photos', imageFiles[i]);
+                statusDiv.innerHTML = `⏳ Compressing ${i + 1}/${imageFiles.length}: ${imageFiles[i].name}...`;
+                try {
+                    const dataUrl = await compressImageToDataUrl(imageFiles[i], 2000, 0.85);
+                    existing.add(dataUrl);
+                } catch (err) {
+                    failed++;
+                    console.warn('Skipping photo:', err);
+                }
+                await new Promise(r => setTimeout(r, 10)); // yield to keep UI responsive
             }
 
-            try {
-                const res = await fetch('/api/upload-gallery-photos', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                if (data.success && data.fileUrls) {
-                    statusDiv.innerHTML = `✅ ${data.fileUrls.length} photo(s) uploaded successfully!`;
-                    
-                    const txt = document.getElementById('gPhotos');
-                    let existing = [];
-                    try { existing = JSON.parse(txt.value); } catch(e) { existing = txt.value.split(',').map(s=>s.trim()).filter(Boolean); }
-                    const combined = [...existing, ...data.fileUrls];
-                    txt.value = JSON.stringify(combined, null, 2);
-                } else {
-                    statusDiv.innerHTML = `⚠️ ${data.error || 'Upload failed'}`;
-                }
-            } catch(e) {
-                statusDiv.innerHTML = '⚠️ Upload error. Please try again.';
+            txt.value = JSON.stringify(Array.from(existing), null, 2);
+
+            if (existing.size === 0) {
+                statusDiv.style.color = '#DC2626';
+                statusDiv.innerHTML = '⚠️ None of the selected files could be processed. Try JPG/PNG images.';
+            } else if (failed > 0) {
+                statusDiv.innerHTML = `✅ ${existing.size} photo(s) ready • ${failed} skipped (unsupported/corrupt). Now click "Create Gallery" to save.`;
+            } else {
+                statusDiv.innerHTML = `✅ ${existing.size} photo(s) ready & compressed. Now click "Create Gallery" to save them.`;
             }
+            input.value = '';
         }
 
         async function loadAdminGalleries() {
@@ -2584,32 +2631,67 @@
 
         document.getElementById('createGalleryForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const galleryCode = document.getElementById('gCode').value;
-            const passcode = document.getElementById('gPass').value;
-            const clientName = document.getElementById('gClient').value;
-            const photoUrlsRaw = document.getElementById('gPhotos').value;
+            const galleryCode = document.getElementById('gCode').value.trim();
+            const passcode = document.getElementById('gPass').value.trim();
+            const clientName = document.getElementById('gClient').value.trim();
+            const photoUrls = parseGalleryPhotoList(document.getElementById('gPhotos').value);
 
-            let photoUrls = [];
-            try {
-                photoUrls = JSON.parse(photoUrlsRaw);
-            } catch(err) {
-                photoUrls = photoUrlsRaw.split(',').map(s => s.trim()).filter(Boolean);
+            if (!galleryCode || !passcode || !clientName) {
+                alert('⚠️ Please fill Gallery Code, Passcode, and Client Name.');
+                return;
             }
 
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Creating Private Gallery...';
+
             try {
+                const codeUpper = galleryCode.toUpperCase();
+                // Chunk photos so each request stays within serverless body limits
+                const chunkSize = 6;
+                const chunks = [];
+                for (let i = 0; i < photoUrls.length; i += chunkSize) {
+                    chunks.push(photoUrls.slice(i, i + chunkSize));
+                }
+                if (chunks.length === 0) chunks.push([]);
+
+                // 1) Create gallery with the first chunk
                 const res = await fetch('/api/galleries', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ galleryCode, passcode, clientName, photoUrls })
+                    body: JSON.stringify({ galleryCode, passcode, clientName, photoUrls: chunks[0] })
                 });
                 const data = await res.json();
-                if (data.success) {
-                    alert('✅ Private Gallery created successfully!');
-                    document.getElementById('createGalleryForm').reset();
-                    loadAdminGalleries();
+                if (!data.success) {
+                    alert('⚠️ ' + (data.error || 'Failed to create gallery.'));
+                    return;
                 }
-            } catch(e) {
-                alert('⚠️ Failed to create gallery.');
+
+                // 2) Append remaining chunks
+                for (let i = 1; i < chunks.length; i++) {
+                    const appendRes = await fetch(`/api/galleries/${encodeURIComponent(codeUpper)}/photos`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ photos: chunks[i] })
+                    });
+                    const appendData = await appendRes.json();
+                    if (!appendData.success) {
+                        alert(`⚠️ Gallery created but some photos failed to save (chunk ${i + 1}).`);
+                        break;
+                    }
+                }
+
+                alert(`✅ Private Gallery created successfully with ${photoUrls.length} photo(s)!`);
+                document.getElementById('createGalleryForm').reset();
+                document.getElementById('gPhotos').value = '';
+                document.getElementById('uploadPhotoStatus').innerHTML = '';
+                loadAdminGalleries();
+            } catch (e) {
+                console.error('Create gallery error:', e);
+                alert('⚠️ Failed to create gallery. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Gallery & Generate Passcode →';
             }
         });
 
