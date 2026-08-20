@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "echo 'Static site + serverless API - no build step required'"
   functions = "functions"
   publish = "public"
 
@@ -29,6 +29,11 @@
 [[redirects]]
   from = "/admin_dashboard"
   to = "/admin-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/sitemap"
   status = 200
 
 [[redirects]]
