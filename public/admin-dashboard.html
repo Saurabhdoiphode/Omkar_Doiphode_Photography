@@ -2516,8 +2516,9 @@
 
         // --- FEATURE 1: PRIVATE GALLERIES MANAGEMENT ---
         // Compress an image client-side into a self-contained data: URL.
-        // Self-contained URLs survive on serverless hosting (no uploads/gallery folders),
-        // and the resize keeps each photo small enough to stay within serverless request limits.
+        // Always outputs JPEG so even PNG sources (screenshots etc.) stay small enough
+        // to fit within serverless request limits. Self-contained URLs survive on
+        // serverless hosting (no /uploads/gallery folders).
         function compressImageToDataUrl(file, maxDim, quality) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -2525,6 +2526,7 @@
                 img.onload = () => {
                     try {
                         let { width, height } = img;
+                        if (!width || !height) throw new Error('Zero-size image: ' + file.name);
                         const scale = Math.min(1, (maxDim || 2000) / Math.max(width, height));
                         const canvas = document.createElement('canvas');
                         canvas.width = Math.max(1, Math.round(width * scale));
@@ -2534,9 +2536,7 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         URL.revokeObjectURL(objectUrl);
-                        const isPng = /\.png$/i.test(file.name);
-                        const mime = isPng ? 'image/png' : 'image/jpeg';
-                        resolve(canvas.toDataURL(mime, isPng ? undefined : (quality || 0.85)));
+                        resolve(canvas.toDataURL('image/jpeg', quality || 0.85));
                     } catch (e) {
                         URL.revokeObjectURL(objectUrl);
                         reject(e);
@@ -2559,29 +2559,77 @@
             }
         }
 
+        let galleryUploadCancelled = false;
+        const GALLERY_PHOTO_MAX = 150;
+
         async function uploadSelectedGalleryPhotos(input) {
             const files = input.files;
             const statusDiv = document.getElementById('uploadPhotoStatus');
             if (!statusDiv || !files || files.length === 0) return;
 
-            // Filter only decodable image types (.jpg, .jpeg, .png, .gif, .webp)
-            const imageFiles = Array.from(files).filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name));
+            const allFiles = Array.from(files);
+            const validExt = /\.(jpe?g|png|gif|webp|bmp|avif)$/i;
+            const unsupportedExt = /\.(heic|heif|dng|nef|cr2|arw|raw|tiff?|mov|mp4|avi|m4v)$/i;
+
+            const imageFiles = allFiles.filter(f => validExt.test(f.name));
+            const unsupported = allFiles.filter(f => unsupportedExt.test(f.name));
+
+            const renderProgress = (done, total, name) => {
+                const pct = Math.round((done / total) * 100);
+                statusDiv.innerHTML = `<div style="text-align:left;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; margin-bottom:5px;">
+                        <span>⏳ Compressing photo ${done} / ${total}</span>
+                        <a href="#" onclick="galleryUploadCancelled=true; return false;" style="color:#DC2626; font-size:11px; text-decoration:none;">✕ Cancel</a>
+                    </div>
+                    <div style="background:#E2E8F0; border-radius:999px; height:10px; overflow:hidden;">
+                        <div style="background:#15803D; width:${pct}%; height:100%; border-radius:999px; transition:width .2s;"></div>
+                    </div>
+                    <div style="font-size:11px; color:#475569; margin-top:5px; word-break:break-all;">${name || ''}</div>
+                </div>`;
+            };
+
             if (imageFiles.length === 0) {
+                input.value = '';
                 statusDiv.style.color = '#DC2626';
-                statusDiv.innerHTML = '⚠️ No valid image files found (supported: JPG, PNG, GIF, WEBP).';
+                if (unsupported.length > 0) {
+                    statusDiv.innerHTML = `⚠️ Found ${unsupported.length} file(s) in HEIC / RAW / VIDEO format (e.g. ${unsupported[0].name}) — web browsers cannot open these. Export/save them as JPG or PNG first, then select again.`;
+                } else {
+                    statusDiv.innerHTML = '⚠️ No supported photos found in this folder (supported: JPG, PNG, GIF, WEBP, BMP, AVIF).';
+                }
                 return;
             }
+
+            if (unsupported.length > 0) {
+                statusDiv.style.color = '#92400E';
+                statusDiv.innerHTML = `ℹ️ ${unsupported.length} file(s) are HEIC / RAW / VIDEO and cannot be displayed — skipping those automatically.`;
+            } else {
+                statusDiv.style.color = '#15803D';
+            }
+
+            const selected = imageFiles.length > GALLERY_PHOTO_MAX ? imageFiles.slice(0, GALLERY_PHOTO_MAX) : imageFiles;
+            const total = selected.length;
 
             const txt = document.getElementById('gPhotos');
             const existing = new Set(parseGalleryPhotoList(txt.value));
 
-            statusDiv.style.color = '#15803D';
+            let done = 0;
             let failed = 0;
-            for (let i = 0; i < imageFiles.length; i++) {
-                statusDiv.innerHTML = `⏳ Compressing ${i + 1}/${imageFiles.length}: ${imageFiles[i].name}...`;
+            galleryUploadCancelled = false;
+            renderProgress(0, total, 'Starting...');
+
+            for (let i = 0; i < total; i++) {
+                if (galleryUploadCancelled) {
+                    galleryUploadCancelled = false;
+                    statusDiv.style.color = '#92400E';
+                    statusDiv.innerHTML = `⏹️ Cancelled — ${existing.size} photo(s) ready so far. Click "Create Gallery" to save.`;
+                    input.value = '';
+                    return;
+                }
+                renderProgress(i + 1, total, selected[i].name);
                 try {
-                    const dataUrl = await compressImageToDataUrl(imageFiles[i], 2000, 0.85);
+                    const dataUrl = await compressImageToDataUrl(selected[i], 2000, 0.82);
                     existing.add(dataUrl);
+                    done++;
                 } catch (err) {
                     failed++;
                     console.warn('Skipping photo:', err);
@@ -2590,16 +2638,18 @@
             }
 
             txt.value = JSON.stringify(Array.from(existing), null, 2);
+            input.value = '';
 
             if (existing.size === 0) {
                 statusDiv.style.color = '#DC2626';
-                statusDiv.innerHTML = '⚠️ None of the selected files could be processed. Try JPG/PNG images.';
-            } else if (failed > 0) {
-                statusDiv.innerHTML = `✅ ${existing.size} photo(s) ready • ${failed} skipped (unsupported/corrupt). Now click "Create Gallery" to save.`;
+                statusDiv.innerHTML = '⚠️ None of the selected files could be processed. Please select JPG/PNG photos.';
             } else {
-                statusDiv.innerHTML = `✅ ${existing.size} photo(s) ready & compressed. Now click "Create Gallery" to save them.`;
+                let msg = `✅ ${done} photo(s) ready & compressed. Now click "Create Gallery" to save.`;
+                if (failed > 0) msg += ` • ${failed} skipped (corrupt/unsupported).`;
+                if (imageFiles.length > total) msg += ` • ${imageFiles.length - total} more not added (max ${GALLERY_PHOTO_MAX} per select) — select the folder again to add the rest.`;
+                statusDiv.style.color = '#15803D';
+                statusDiv.innerHTML = msg;
             }
-            input.value = '';
         }
 
         function galleryPhotoThumbs(code, passcode, photoUrlsRaw, maxThumbs) {
