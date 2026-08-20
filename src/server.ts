@@ -2,6 +2,10 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
+import { createRequire } from 'module';
+
+// require() that works from both ESM source and CJS bundles (used to load native sqlite3 only when NOT running serverless)
+const nodeRequire = createRequire(typeof __filename === 'string' ? __filename : import.meta.url);
 
 import { createClient } from '@supabase/supabase-js';
 import multer from 'multer';
@@ -225,7 +229,7 @@ setInterval(cleanupSixMonthOldBookings, 24 * 60 * 60 * 1000);
 let db: any;
 if (!process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   try {
-    const sqlite3 = (await import('sqlite3')).default;
+    const sqlite3 = nodeRequire('sqlite3');
     const dbPath = path.join(process.cwd(), 'photography.db');
     db = new sqlite3.Database(dbPath, (err) => {
       if (err) console.error('SQLite connection notice:', err.message);
