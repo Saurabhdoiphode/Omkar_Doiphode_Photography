@@ -6,6 +6,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[[plugins]]
+  package = "./netlify/plugins/sitemap"
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"

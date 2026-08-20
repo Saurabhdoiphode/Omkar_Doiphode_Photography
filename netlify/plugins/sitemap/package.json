@@ -1,0 +1,7 @@
+{
+  "name": "netlify-plugin-sitemap",
+  "version": "1.0.0",
+  "description": "Generate sitemap.xml after build",
+  "main": "index.js",
+  "dependencies": {}
+}
