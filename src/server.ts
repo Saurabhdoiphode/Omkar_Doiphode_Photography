@@ -1677,13 +1677,17 @@ app.get('/api/analytics', async (req: Request, res: Response) => {
   }
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(`🚀 TypeScript Photography Server running on http://localhost:${PORT}`);
-  console.log(`==================================================`);
-  checkSupabaseTables();
-});
+// Export Express app for Netlify Functions & local server
+export { app };
+
+if (!process.env.NETLIFY && process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`==================================================`);
+    console.log(`🚀 TypeScript Photography Server running on http://localhost:${PORT}`);
+    console.log(`==================================================`);
+    checkSupabaseTables();
+  });
+}
 
 // Health check: warn clearly if required Supabase tables are missing (otherwise uploads only persist locally, which is wiped on cloud restarts)
 async function checkSupabaseTables() {
