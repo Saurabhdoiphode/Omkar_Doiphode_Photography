@@ -2602,16 +2602,21 @@
             input.value = '';
         }
 
-        function galleryPhotoThumbs(photoUrlsRaw, maxThumbs) {
+        function galleryPhotoThumbs(code, passcode, photoUrlsRaw, maxThumbs) {
             let urls = [];
             try { urls = JSON.parse(photoUrlsRaw || '[]'); } catch (e) { urls = []; }
             if (!Array.isArray(urls)) urls = [];
-            const thumbs = urls.slice(0, maxThumbs || 4);
+            const passEnc = encodeURIComponent(passcode || '');
+            const thumbs = urls.slice(0, maxThumbs || 4).map((u, i) => {
+                if (typeof u === 'string' && u.startsWith('data:')) {
+                    return `/api/galleries/${encodeURIComponent(code)}/photo/${i}?pass=${passEnc}`;
+                }
+                return u;
+            });
             if (thumbs.length === 0) {
                 return '<div style="font-size:12px; color:#94A3B8; font-style:italic;">No photos yet</div>';
             }
             return '<div style="display:flex; gap:6px; flex-wrap:wrap; margin:10px 0;">' + thumbs.map(u => {
-                const t = (u || '').length > 120 ? u.slice(0, 60) + '...(truncated)' : u;
                 return `<img src="${u}" alt="photo" style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid #E2E8F0;" onerror="this.style.display='none';">`;
             }).join('') + (urls.length > thumbs.length ? `<div style="font-size:11px; color:#64748B; font-weight:700; align-self:center;">+${urls.length - thumbs.length} more</div>` : '') + '</div>';
         }
@@ -2649,7 +2654,7 @@
                                 <div style="font-size:13px; color:#475569; margin-bottom:4px;">Passcode: <code>${escapeHtml(g.passcode)}</code></div>
                             </div>
                         </div>
-                        ${galleryPhotoThumbs(g.photo_urls, 4)}
+                        ${galleryPhotoThumbs(g.gallery_code, g.passcode, g.photo_urls, 4)}
                         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
                             <a href="/client-gallery.html?code=${encodeURIComponent(g.gallery_code)}&pass=${encodeURIComponent(g.passcode || '')}" target="_blank" class="btn-contact" style="display:inline-block; font-size:12px; background:#D4A574; color:#0F172A; font-weight:700; padding:8px 14px; border-radius:8px; text-decoration:none;">🔓 Open &amp; Auto-Unlock</a>
                             <a href="/client-gallery.html?code=${encodeURIComponent(g.gallery_code)}" target="_blank" class="btn-contact" style="display:inline-block; font-size:12px; background:#0F172A; color:#FFFFFF; font-weight:700; padding:8px 14px; border-radius:8px; text-decoration:none;">🔗 Client Portal Link</a>

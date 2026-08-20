@@ -1457,7 +1457,53 @@ app.post('/api/galleries/:code/photos', async (req: Request, res: Response) => {
   }
 });
 
-// 17. Get Galleries List (Supports both private_galleries and gallery_items)
+// 17. Serve an Embedded Gallery Photo as Image Bytes
+// The client/admin render photos through this URL instead of huge inline data:
+// URLs, which some mobile browsers silently fail to display. Passcode still required.
+app.get(['/api/galleries/:code/photo/:index', '/api/gallery/:code/photo/:index'], async (req: Request, res: Response) => {
+  const codeUpper = String(req.params.code).trim().toUpperCase();
+  const idx = parseInt(String(req.params.index), 10);
+  const pass = String(req.query.pass || req.query.passcode || '').trim();
+  if (!codeUpper || isNaN(idx) || idx < 0) return res.status(400).end();
+
+  let foundGallery: any = null;
+  try {
+    const { data: g } = await supabase.from('private_galleries').select('photo_urls, passcode').ilike('gallery_code', codeUpper).maybeSingle();
+    if (g) foundGallery = g;
+  } catch (e) {}
+  if (!foundGallery) {
+    await new Promise<void>((resolve) => {
+      db.get('SELECT photo_urls, passcode FROM private_galleries WHERE UPPER(gallery_code) = UPPER(?)', [codeUpper], (_err, row: any) => {
+        if (row) foundGallery = row;
+        resolve();
+      });
+    });
+  }
+
+  if (!foundGallery) return res.status(404).end();
+  if (String(foundGallery.passcode || '').trim() !== pass) return res.status(401).end();
+
+  let photos: any[] = [];
+  try { photos = JSON.parse(foundGallery.photo_urls || '[]'); } catch (e) { photos = [foundGallery.photo_urls]; }
+  if (!Array.isArray(photos)) photos = [photos];
+
+  const raw = photos[idx];
+  if (!raw || typeof raw !== 'string' || !raw.startsWith('data:')) return res.status(404).end();
+
+  const comma = raw.indexOf(',');
+  if (comma < 0) return res.status(404).end();
+  const meta = raw.slice(0, comma);
+  const mime = (meta.split(';')[0] || '').replace('data:', '') || 'image/jpeg';
+  const buf = Buffer.from(raw.slice(comma + 1), 'base64');
+  if (!buf.length) return res.status(404).end();
+
+  res.setHeader('Content-Type', mime);
+  res.setHeader('Content-Length', String(buf.length));
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(buf);
+});
+
+// 18. Get Galleries List (Supports both private_galleries and gallery_items)
 app.get('/api/galleries', async (req: Request, res: Response) => {
   try {
     let galleries: any[] = [];
@@ -1545,6 +1591,15 @@ app.post('/api/galleries/verify', async (req: Request, res: Response) => {
       photos = [foundGallery.photo_urls];
     }
     if (!Array.isArray(photos)) photos = [photos];
+
+    // Rewrite embedded data: URLs to image-serving API URLs so mobile browsers
+    // render them reliably (huge inline data: URLs can fail silently on some devices).
+    const passEnc = encodeURIComponent(passTrimmed);
+    photos = photos.map((u: any, i: number) =>
+      (typeof u === 'string' && u.startsWith('data:'))
+        ? `/api/galleries/${codeUpper}/photo/${i}?pass=${passEnc}`
+        : u
+    );
 
     const daysRemaining = Math.max(0, 30 - diffDays);
 
