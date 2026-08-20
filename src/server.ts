@@ -164,14 +164,6 @@ const localStore = {
     } catch (e) {
       console.error('Error reading local store:', e);
     }
-    if (!this.data.reviews || this.data.reviews.length === 0) {
-      this.data.reviews = [
-        { id: 1, client_name: 'Amit & Priya', event_type: 'Marriage Package', rating: 5, review_text: 'Omkar captured our wedding so beautifully! The lighting and emotional shots were beyond expectation.', is_approved: 1, created_at: new Date().toISOString() },
-        { id: 2, client_name: 'Siddharth Patil', event_type: 'Pre-Wedding Shoot', rating: 5, review_text: 'Amazing pre-wedding shoot experience at Mahabaleshwar. Super professional and creative team!', is_approved: 1, created_at: new Date().toISOString() },
-        { id: 3, client_name: 'Neha Deshmukh', event_type: 'Baby Shoot', rating: 5, review_text: 'Loved the newborn baby photoshoot themes! So patient and gentle with our baby. Highly recommended!', is_approved: 1, created_at: new Date().toISOString() }
-      ];
-      this.save();
-    }
   },
   save() {
     try {
@@ -1647,24 +1639,6 @@ app.delete('/api/galleries/:id', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to delete item' });
   }
 });
-
-// 17. Get Reviews List (Supports both /api/reviews and /api/admin/reviews)
-const getReviewsHandler = async (req: Request, res: Response) => {
-  try {
-    const { data: reviews, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
-    if (!error && reviews) {
-      return res.json({ success: true, reviews });
-    }
-    db.all('SELECT * FROM reviews ORDER BY created_at DESC', [], (err, rows) => {
-      res.json({ success: true, reviews: rows || [] });
-    });
-  } catch (e) {
-    res.status(500).json({ error: 'Database error' });
-  }
-};
-
-app.get('/api/reviews', getReviewsHandler);
-app.get('/api/admin/reviews', getReviewsHandler);
 
 // 20. Public Website Approved Reviews Endpoint
 app.get('/api/reviews', async (req: Request, res: Response) => {
