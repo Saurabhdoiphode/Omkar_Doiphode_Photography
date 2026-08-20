@@ -929,8 +929,9 @@ app.get('/api/calendar-status', async (req: Request, res: Response) => {
     const { data: sbBlocked } = await supabase.from('blocked_dates').select('*');
     if (sbBlocked && sbBlocked.length > 0) {
       sbBlocked.forEach(row => {
-        statusMap[row.date_str] = row.status;
+        const current = statusMap[row.date_str];
         if (row.status === 'blocked') {
+          statusMap[row.date_str] = 'blocked';
           if (!eventsMap[row.date_str]) {
             eventsMap[row.date_str] = {
               eventType: row.notes || 'Photography Shoot Booked',
@@ -938,7 +939,13 @@ app.get('/api/calendar-status', async (req: Request, res: Response) => {
             };
           }
         } else if (row.status === 'available') {
-          delete eventsMap[row.date_str];
+          // A stale "available" marker must NEVER hide a real pending/confirmed
+          // booking on the same date (otherwise calendars stay GREEN after a
+          // booking request). Only apply it when no booking claims the date.
+          if (!current || current === 'available') {
+            statusMap[row.date_str] = 'available';
+            delete eventsMap[row.date_str];
+          }
         }
       });
     }
@@ -961,8 +968,18 @@ app.get('/api/calendar-status', async (req: Request, res: Response) => {
       db.all('SELECT date_str, status, notes FROM blocked_dates', [], (err: any, blockedRows: BlockedDateRecord[]) => {
         if (blockedRows && blockedRows.length > 0) {
           blockedRows.forEach(row => {
-            statusMap[row.date_str] = row.status;
-            if (row.status === 'available') delete eventsMap[row.date_str];
+            const current = statusMap[row.date_str];
+            if (row.status === 'blocked') {
+              statusMap[row.date_str] = 'blocked';
+              if (!eventsMap[row.date_str]) {
+                eventsMap[row.date_str] = { eventType: row.notes || 'Photography Shoot Booked', status: 'blocked' };
+              }
+            } else if (row.status === 'available') {
+              if (!current || current === 'available') {
+                statusMap[row.date_str] = 'available';
+                delete eventsMap[row.date_str];
+              }
+            }
           });
         }
         res.json({ success: true, dateStatuses: statusMap, dateEvents: eventsMap });
