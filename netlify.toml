@@ -1,6 +1,6 @@
 [build]
   functions = "functions"
-  publish = "public"
+  publish = "."
 
 [functions]
   node_bundler = "esbuild"
@@ -11,6 +11,21 @@
   status = 200
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/admin"
+  to = "/public/admin-login.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin-login"
+  to = "/public/admin-login.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin-dashboard"
+  to = "/public/admin-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin_dashboard"
+  to = "/public/admin-dashboard.html"
   status = 200
