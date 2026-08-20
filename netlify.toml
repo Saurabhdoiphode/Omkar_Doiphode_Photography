@@ -1,7 +1,7 @@
 [build]
   command = "echo 'Static site + serverless API - no build step required'"
   functions = "functions"
-  publish = "."
+  publish = "public"
 
 [functions]
   node_bundler = "esbuild"
@@ -13,22 +13,22 @@
 
 [[redirects]]
   from = "/admin"
-  to = "/public/admin-login.html"
+  to = "/admin-login.html"
   status = 200
 
 [[redirects]]
   from = "/admin-login"
-  to = "/public/admin-login.html"
+  to = "/admin-login.html"
   status = 200
 
 [[redirects]]
   from = "/admin-dashboard"
-  to = "/public/admin-dashboard.html"
+  to = "/admin-dashboard.html"
   status = 200
 
 [[redirects]]
   from = "/admin_dashboard"
-  to = "/public/admin-dashboard.html"
+  to = "/admin-dashboard.html"
   status = 200
 
 [[redirects]]

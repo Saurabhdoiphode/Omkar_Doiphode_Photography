@@ -1,0 +1,6 @@
+/api/*  /.netlify/functions/api/:splat  200
+/admin  /admin-login.html  200
+/admin-login  /admin-login.html  200
+/admin-dashboard  /admin-dashboard.html  200
+/admin_dashboard  /admin-dashboard.html  200
+/*  /index.html  200
