@@ -235,6 +235,9 @@ if (!process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
     console.log('⚡ Running in Hybrid Supabase + Local JSON Store Mode');
   }
 }
+
+// JSON (localStore) fallback when native sqlite3 is unavailable (e.g. on Netlify / Lambda serverless)
+if (!db) {
   db = {
     run: (sql: string, params?: any, cb?: Function) => {
       const callback = typeof params === 'function' ? params : cb;
@@ -1197,6 +1200,9 @@ app.delete('/api/bookings/:id', async (req: Request, res: Response) => {
     db.run('DELETE FROM bookings WHERE id = ? OR id = ?', [id, isNaN(numId) ? -1 : numId]);
     if (bookingDate && clientPhone) {
       db.run('DELETE FROM bookings WHERE booking_date = ? AND client_phone = ?', [bookingDate, clientPhone]);
+      try {
+        await supabase.from('bookings').delete().eq('booking_date', bookingDate).eq('client_phone', clientPhone);
+      } catch (e) {}
     }
 
     // 3. Free the calendar date — only if no other confirmed/blocked booking remains on that date
