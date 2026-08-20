@@ -223,15 +223,18 @@ setInterval(cleanupSixMonthOldBookings, 24 * 60 * 60 * 1000);
 
 // Local Database Interface Wrapper
 let db: any;
-try {
-  const sqlite3 = (await import('sqlite3')).default;
-  const dbPath = path.join(process.cwd(), 'photography.db');
-  db = new sqlite3.Database(dbPath, (err) => {
-    if (err) console.error('SQLite connection notice:', err.message);
-    else console.log('Connected to SQLite local database');
-  });
-} catch (e) {
-  console.log('⚡ Running in Hybrid Supabase + Local JSON Store Mode');
+if (!process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  try {
+    const sqlite3 = (await import('sqlite3')).default;
+    const dbPath = path.join(process.cwd(), 'photography.db');
+    db = new sqlite3.Database(dbPath, (err) => {
+      if (err) console.error('SQLite connection notice:', err.message);
+      else console.log('Connected to SQLite local database');
+    });
+  } catch (e) {
+    console.log('⚡ Running in Hybrid Supabase + Local JSON Store Mode');
+  }
+}
   db = {
     run: (sql: string, params?: any, cb?: Function) => {
       const callback = typeof params === 'function' ? params : cb;
