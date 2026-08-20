@@ -184,12 +184,25 @@
         let favorites = new Set();
         let currentLightboxIdx = 0;
 
-        // Check if query params present in URL (e.g. ?code=RAHUL2026)
+        // Check if query params present in URL (e.g. ?code=RAHUL2026&pass=1234)
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code') || params.get('id');
+            const pass = params.get('pass') || params.get('passcode') || params.get('password');
             if (code) {
                 document.getElementById('galleryCodeInput').value = code.toUpperCase();
+            }
+            if (pass) {
+                document.getElementById('passcodeInput').value = pass;
+            }
+            if (code && pass) {
+                // Auto-unlock when a full link (with passcode) is opened
+                const form = document.getElementById('passcodeForm');
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
             }
         });
 
