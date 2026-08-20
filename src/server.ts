@@ -1055,39 +1055,6 @@ const submitBookingHandler = async (req: Request, res: Response) => {
 
 app.post(['/api/bookings', '/api/book', '/api/bookings/submit', '/api/create-booking'], submitBookingHandler);
 
-// 7b. Temporary diagnostic route (remove after debugging live Supabase reads)
-app.get('/api/_diag', async (req: Request, res: Response) => {
-  try {
-    let supabaseStatus = 'unavailable';
-    let bookingIds: unknown = null;
-    let readError: unknown = null;
-    try {
-      const { data, error } = await supabase.from('bookings').select('id').limit(3);
-      if (error) {
-        readError = error.message || error;
-        supabaseStatus = 'error';
-      } else if (data) {
-        supabaseStatus = 'ok';
-        bookingIds = data;
-      }
-    } catch (e) {
-      supabaseStatus = 'threw';
-      readError = e instanceof Error ? e.message : String(e);
-    }
-    res.json({
-      success: true,
-      usingUrl: SUPABASE_URL,
-      envUrl: process.env.SUPABASE_URL || null,
-      envKeyPrefix: process.env.SUPABASE_ANON_KEY ? process.env.SUPABASE_ANON_KEY.slice(0, 12) : null,
-      supabaseStatus,
-      bookingIds,
-      readError
-    });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e instanceof Error ? e.message : String(e) });
-  }
-});
-
 // 8. Get All Bookings
 app.get('/api/bookings', async (req: Request, res: Response) => {
   try {
