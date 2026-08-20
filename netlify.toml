@@ -32,11 +32,6 @@
   status = 200
 
 [[redirects]]
-  from = "/sitemap-custom.xml"
-  to = "/.netlify/functions/sitemap-custom"
-  status = 200
-
-[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
