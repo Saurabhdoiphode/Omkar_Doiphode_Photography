@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin-dashboard.html
+Disallow: /api/
 
 Sitemap: https://omkardoiphodephotography.netlify.app/sitemap-custom.xml
