@@ -2,141 +2,7 @@
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8TCG61273V">
-        // --- Color Grading (Before/After) Admin Handlers ---
-        function updateAdminBeforeAfter(val) {
-            const pct = Math.max(0, Math.min(100, Number(val)));
-            const rawImg = document.getElementById('adminBaAfterImg');
-            const divider = document.getElementById('adminBaDivider');
-            if (rawImg) {
-                rawImg.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
-                rawImg.style.webkitClipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
-            }
-            if (divider) {
-                divider.style.left = pct + '%';
-            }
-        }
-
-        function previewSelectedImage(input, targetImgId) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById(targetImgId);
-                    if (img) img.src = e.target.result;
-                    if (targetImgId === 'adminRawPreviewImg') {
-                        const splitRaw = document.getElementById('adminBaAfterImg');
-                        if (splitRaw) splitRaw.src = e.target.result;
-                    } else if (targetImgId === 'adminEditedPreviewImg') {
-                        const splitEdited = document.getElementById('adminBaBeforeImg');
-                        if (splitEdited) splitEdited.src = e.target.result;
-                    }
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        async function loadAdminColorGrading() {
-            try {
-                const res = await fetch('/api/color-grading');
-                const data = await res.json();
-                if (data && data.success) {
-                    const rawUrl = data.raw_image || '/uploads/color-grading/default_raw.jpg';
-                    const editedUrl = data.edited_image || '/uploads/color-grading/default_edited.jpg';
-
-                    const rawPreview = document.getElementById('adminRawPreviewImg');
-                    const editedPreview = document.getElementById('adminEditedPreviewImg');
-                    const splitRaw = document.getElementById('adminBaAfterImg');
-                    const splitEdited = document.getElementById('adminBaBeforeImg');
-
-                    if (rawPreview) rawPreview.src = rawUrl;
-                    if (editedPreview) editedPreview.src = editedUrl;
-                    if (splitRaw) splitRaw.src = rawUrl;
-                    if (splitEdited) splitEdited.src = editedUrl;
-                }
-            } catch (e) {
-                console.error('Failed to load color grading photos:', e);
-            }
-        }
-
-        async function uploadSingleCgPhoto(type) {
-            const inputId = type === 'raw' ? 'rawFileInput' : 'editedFileInput';
-            const fileInput = document.getElementById(inputId);
-            const statusBox = document.getElementById('cgStatusMessage');
-
-            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                alert(currentLang === 'mr' ? 'कृपया आधी फोटो फाईल निवडा.' : 'Please select an image file first.');
-                return;
-            }
-
-            const formData = new FormData();
-            if (type === 'raw') {
-                formData.append('raw_image', fileInput.files[0]);
-            } else {
-                formData.append('edited_image', fileInput.files[0]);
-            }
-
-            try {
-                if (statusBox) {
-                    statusBox.style.display = 'block';
-                    statusBox.style.background = '#EFF6FF';
-                    statusBox.style.color = '#1D4ED8';
-                    statusBox.style.border = '1px solid #BFDBFE';
-                    statusBox.textContent = currentLang === 'mr' ? 'फोटो अपलोड होत आहे, कृपया थांबा...' : 'Uploading photo, please wait...';
-                }
-
-                const res = await fetch('/api/admin/color-grading', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-
-                if (data && data.success) {
-                    if (statusBox) {
-                        statusBox.style.background = '#DCFCE7';
-                        statusBox.style.color = '#15803D';
-                        statusBox.style.border = '1px solid #86EFAC';
-                        statusBox.textContent = currentLang === 'mr' ? '✅ फोटो यशस्वीरीत्या अद्ययावत झाला!' : '✅ Photo updated successfully!';
-                    }
-                    setTimeout(() => { if (statusBox) statusBox.style.display = 'none'; }, 4000);
-                    fileInput.value = '';
-                    loadAdminColorGrading();
-                } else {
-                    throw new Error(data.error || 'Upload failed');
-                }
-            } catch (err) {
-                if (statusBox) {
-                    statusBox.style.background = '#FEE2E2';
-                    statusBox.style.color = '#991B1B';
-                    statusBox.style.border = '1px solid #FCA5A5';
-                    statusBox.textContent = currentLang === 'mr' ? '❌ फोटो अपलोड करताना त्रुटी आली.' : ('❌ ' + err.message);
-                }
-            }
-        }
-
-        async function resetAdminColorGrading() {
-            const msg = currentLang === 'mr' ? 'तुम्हाला खात्री आहे का की Before/After फोटो डीफॉल्टवर पूर्ववत करायचे आहेत?' : 'Are you sure you want to revert Before/After photos to studio defaults?';
-            if (!confirm(msg)) return;
-
-            const statusBox = document.getElementById('cgStatusMessage');
-            try {
-                const res = await fetch('/api/admin/color-grading', { method: 'DELETE' });
-                const data = await res.json();
-                if (data && data.success) {
-                    if (statusBox) {
-                        statusBox.style.display = 'block';
-                        statusBox.style.background = '#DCFCE7';
-                        statusBox.style.color = '#15803D';
-                        statusBox.style.border = '1px solid #86EFAC';
-                        statusBox.textContent = currentLang === 'mr' ? '✅ फोटो डीफॉल्टवर पूर्ववत करण्यात आले!' : '✅ Reset to studio defaults successfully!';
-                        setTimeout(() => { statusBox.style.display = 'none'; }, 4000);
-                    }
-                    loadAdminColorGrading();
-                }
-            } catch (e) {
-                alert(currentLang === 'mr' ? 'त्रुटी आली.' : 'Failed to reset.');
-            }
-        }
-    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8TCG61273V"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -1139,10 +1005,6 @@
                 <span>🎨</span>
                 <span data-i18n="ad_tab_logos">Logo & Branding</span>
             </button>
-            <button class="tab-btn" onclick="switchTab('colorGradingTab', this); loadAdminColorGrading();">
-                <span>✨</span>
-                <span data-i18n="ad_tab_color_grading">Color Grading (Before/After)</span>
-            </button>
         </div>
 
         <!-- TAB 1: Booking Requests & Calendar Management -->
@@ -1564,105 +1426,6 @@
         </div>
     </div>
 
-    
-        <!-- TAB 7: Color Grading (Before/After) Management -->
-        <div id="colorGradingTab" class="tab-content">
-            <div class="upload-section">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:1rem;">
-                    <div>
-                        <h2 class="section-title" data-i18n="ad_sec_cg_title">🎨 Signature Color Grading (Before/After Slider) Management</h2>
-                        <p style="font-size:13px; color:#475569; font-weight:500; margin-top:4px;" data-i18n="ad_desc_cg">Upload custom RAW capture and Signature Edited photos to showcase your editing skills on the home page split slider.</p>
-                    </div>
-                    <button type="button" onclick="resetAdminColorGrading()" class="btn-confirm" style="background:#EF4444; color:#FFFFFF; border:none; padding:10px 18px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(239,68,68,0.25);" data-i18n="ad_cg_btn_reset">
-                        <span>🔄 Revert to Studio Defaults</span>
-                    </button>
-                </div>
-
-                <div id="cgStatusMessage" style="display:none; padding:12px 16px; border-radius:8px; margin-bottom:1.5rem; font-size:13px; font-weight:700;"></div>
-
-                <!-- Dual Upload Cards Grid (RAW and Signature Edit) -->
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:2rem;">
-                    
-                    <!-- Card 1: RAW Photo (Before) -->
-                    <div style="background:#F8FAFC; border:1.5px solid #CBD5E1; border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 15px rgba(0,0,0,0.04);">
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
-                                <h3 style="font-size:16px; font-weight:800; color:#0F172A;" data-i18n="ad_cg_raw_card">📷 RAW Photo (Before)</h3>
-                                <span style="font-size:11px; font-weight:800; background:#E2E8F0; color:#334155; padding:3px 8px; border-radius:10px;">LEFT SIDE</span>
-                            </div>
-                            <p style="font-size:12.5px; color:#64748B; font-weight:500; margin-bottom:1rem;" data-i18n="ad_cg_raw_desc">The unedited, natural camera capture photo.</p>
-                            
-                            <!-- Preview Box -->
-                            <div style="width:100%; height:220px; border-radius:12px; overflow:hidden; background:#1E293B; border:2px dashed #94A3B8; display:flex; align-items:center; justify-content:center; margin-bottom:1rem; position:relative;">
-                                <img id="adminRawPreviewImg" src="/uploads/color-grading/default_raw.jpg" alt="RAW Photo Preview" style="width:100%; height:100%; object-fit:cover;">
-                                <div style="position:absolute; bottom:8px; left:8px; background:rgba(15,23,42,0.85); color:#FFFFFF; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;" data-i18n="ba_label_raw">RAW PHOTO</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <input type="file" id="rawFileInput" accept="image/*" style="font-size:12.5px; color:#0F172A; font-weight:600; width:100%; box-sizing:border-box; margin-bottom:10px;" onchange="previewSelectedImage(this, 'adminRawPreviewImg')">
-                            <button type="button" onclick="uploadSingleCgPhoto('raw')" class="btn-confirm" style="width:100%; background:#0F172A; color:#D4A574; border:1.5px solid #D4A574; padding:10px 16px; font-size:13px; font-weight:800; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;" data-i18n="ad_cg_raw_btn">
-                                <span>📷 Upload RAW Photo</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Card 2: Signature Edit Photo (After) -->
-                    <div style="background:#F8FAFC; border:1.5px solid #D4A574; border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 15px rgba(212,165,116,0.12);">
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
-                                <h3 style="font-size:16px; font-weight:800; color:#0F172A;" data-i18n="ad_cg_edited_card">✨ Signature Edit Photo (After)</h3>
-                                <span style="font-size:11px; font-weight:800; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:3px 8px; border-radius:10px;">RIGHT SIDE</span>
-                            </div>
-                            <p style="font-size:12.5px; color:#64748B; font-weight:500; margin-bottom:1rem;" data-i18n="ad_cg_edited_desc">Your master color graded and retouched final photo.</p>
-                            
-                            <!-- Preview Box -->
-                            <div style="width:100%; height:220px; border-radius:12px; overflow:hidden; background:#1E293B; border:2px dashed #D4A574; display:flex; align-items:center; justify-content:center; margin-bottom:1rem; position:relative;">
-                                <img id="adminEditedPreviewImg" src="/uploads/color-grading/default_edited.jpg" alt="Signature Edit Preview" style="width:100%; height:100%; object-fit:cover;">
-                                <div style="position:absolute; bottom:8px; right:8px; background:var(--accent-gold); color:#0F172A; font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px;" data-i18n="ba_label_edit">SIGNATURE EDIT ✨</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <input type="file" id="editedFileInput" accept="image/*" style="font-size:12.5px; color:#0F172A; font-weight:600; width:100%; box-sizing:border-box; margin-bottom:10px;" onchange="previewSelectedImage(this, 'adminEditedPreviewImg')">
-                            <button type="button" onclick="uploadSingleCgPhoto('edited')" class="btn-confirm" style="width:100%; background:#D4A574; color:#0F172A; border:1.5px solid #D4A574; padding:10px 16px; font-size:13px; font-weight:800; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;" data-i18n="ad_cg_edited_btn">
-                                <span>✨ Upload Signature Edit</span>
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Live Interactive Admin Slider Preview Card -->
-                <div style="background:#0F172A; border-radius:18px; padding:2rem 1.5rem; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
-                    <h3 style="font-size:18px; font-weight:900; color:#FFFFFF; font-family:'Playfair Display', serif; margin-bottom:0.3rem;" data-i18n="ad_cg_preview_title">👁️ Live Before/After Interactive Preview</h3>
-                    <p style="font-size:13px; color:#94A3B8; margin-bottom:1.5rem;" data-i18n="ad_cg_preview_desc">Drag the slider to test how clients will experience the comparison on your website (both desktop & mobile).</p>
-
-                    <!-- Interactive Slider Box (compact width for portrait ratio) -->
-                    <div style="max-width:480px; margin:0 auto; position:relative; height:540px; border-radius:16px; overflow:hidden; border:2px solid #D4A574; box-shadow:0 15px 35px rgba(0,0,0,0.5);" id="adminSliderContainer">
-                        <!-- After (Base) Layer -->
-                        <img id="adminBaBeforeImg" src="/uploads/color-grading/default_edited.jpg" alt="Signature Edit" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; pointer-events:none;">
-                        
-                        <!-- Before (Overlay) Layer -->
-                        <img id="adminBaAfterImg" src="/uploads/color-grading/default_raw.jpg" alt="RAW Photo" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; pointer-events:none; clip-path:polygon(0 0, 50% 0, 50% 100%, 0 100%); -webkit-clip-path:polygon(0 0, 50% 0, 50% 100%, 0 100%);">
-                        
-                        <!-- Divider Line -->
-                        <div id="adminBaDivider" style="position:absolute; top:0; bottom:0; left:50%; width:3px; background:#FFFFFF; transform:translateX(-50%); box-shadow:0 0 10px rgba(0,0,0,0.7); pointer-events:none; z-index:10;">
-                            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:38px; height:38px; background:#D4A574; border:3px solid #FFFFFF; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.4); font-size:14px; font-weight:900; color:#0F172A;">↔</div>
-                        </div>
-
-                        <!-- Badges -->
-                        <div style="position:absolute; top:16px; left:16px; background:rgba(15,23,42,0.85); color:#FFFFFF; border:1px solid rgba(212,165,116,0.5); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:800; letter-spacing:1px; z-index:12;" data-i18n="ba_label_raw">RAW PHOTO</div>
-                        <div style="position:absolute; top:16px; right:16px; background:var(--accent-gold); color:#0F172A; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:800; letter-spacing:1px; z-index:12;" data-i18n="ba_label_edit">SIGNATURE EDIT ✨</div>
-
-                        <!-- Range Slider Input -->
-                        <input type="range" min="0" max="100" value="50" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:ew-resize; z-index:15; margin:0;" oninput="updateAdminBeforeAfter(this.value)" id="adminSliderInput">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- JavaScript Logic -->
     <script>
         const i18nDict = {
@@ -1675,20 +1438,6 @@
                 ad_tab_reviews: "Review Moderation",
                 ad_tab_portfolio: "Category Cards Manager",
                 ad_tab_logos: "Logo & Branding",
-                ad_tab_color_grading: "Color Grading (Before/After)",
-                ad_sec_cg_title: "🎨 Signature Color Grading (Before/After Slider) Management",
-                ad_desc_cg: "Upload custom RAW capture and Signature Edited photos to showcase your editing skills on the home page split slider.",
-                ad_cg_raw_card: "📷 RAW Photo (Before)",
-                ad_cg_raw_desc: "The unedited, natural camera capture photo.",
-                ad_cg_raw_btn: "Upload RAW Photo",
-                ad_cg_edited_card: "✨ Signature Edit Photo (After)",
-                ad_cg_edited_desc: "Your master color graded and retouched final photo.",
-                ad_cg_edited_btn: "Upload Signature Edit",
-                ad_cg_preview_title: "👁️ Live Before/After Interactive Preview",
-                ad_cg_preview_desc: "Drag the slider to test how clients will experience the comparison on your website (both desktop & mobile).",
-                ad_cg_btn_reset: "🔄 Revert to Studio Defaults",
-                ba_label_raw: "RAW PHOTO",
-                ba_label_edit: "SIGNATURE EDIT ✨",
                 ad_m_total: "Total Booking Requests",
                 ad_m_pending: "Pending Requests (Yellow ⏳)",
                 ad_m_confirmed: "Confirmed Bookings (Green ✅)",

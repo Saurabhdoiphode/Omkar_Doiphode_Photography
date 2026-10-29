@@ -3759,7 +3759,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadLogo();
             fetchCalendarStatuses();
-            fetchColorGradingImages();
             initBeforeAfterTouch();
 
             const bookingForm = document.getElementById('bookingForm');
@@ -4022,23 +4021,7 @@
             window.addEventListener('touchend', () => { isDragging = false; });
         }
 
-        // Fetch Dynamic Color Grading Photos Uploaded by Admin
-        async function fetchColorGradingImages() {
-            try {
-                const res = await fetch('/api/color-grading');
-                const data = await res.json();
-                if (data && data.success) {
-                    const beforeImg = document.getElementById('baBeforeImg');
-                    const afterImg = document.getElementById('baAfterImg');
-                    if (beforeImg && data.edited_image) {
-                        beforeImg.src = data.edited_image;
-                    }
-                    if (afterImg && data.raw_image) {
-                        afterImg.src = data.raw_image;
-                        if (data.raw_image !== '/uploads/color-grading/default_raw.jpg') {
-                            afterImg.classList.remove('is-default-raw');
-                        }
-                    }
+        
                 }
             } catch (e) {
                 console.log('Error fetching color grading photos:', e);
