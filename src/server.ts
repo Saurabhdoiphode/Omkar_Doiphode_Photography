@@ -102,12 +102,14 @@ const publicUploadDir = path.join(process.cwd(), 'public', 'uploads');
 const logoDir = path.join(uploadDir, 'logos');
 const profileDir = path.join(uploadDir, 'profile');
 const galleryDir = path.join(uploadDir, 'gallery');
+const colorGradingDir = path.join(uploadDir, 'color-grading');
 
 const publicLogoDir = path.join(publicUploadDir, 'logos');
 const publicProfileDir = path.join(publicUploadDir, 'profile');
 const publicGalleryDir = path.join(publicUploadDir, 'gallery');
+const publicColorGradingDir = path.join(publicUploadDir, 'color-grading');
 
-[uploadDir, publicUploadDir, logoDir, profileDir, galleryDir, publicLogoDir, publicProfileDir, publicGalleryDir].forEach(dir => {
+[uploadDir, publicUploadDir, logoDir, profileDir, galleryDir, colorGradingDir, publicLogoDir, publicProfileDir, publicGalleryDir, publicColorGradingDir].forEach(dir => {
   try {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -157,6 +159,7 @@ const uploadMemoryLogo = multer({
   }
 });
 const uploadMemoryProfile = multer({ storage: memoryStorage, limits: { fileSize: 10 * 1024 * 1024 } });
+const uploadColorGrading = multer({ storage: memoryStorage, limits: { fileSize: 25 * 1024 * 1024 } });
 
 const galleryStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -200,6 +203,7 @@ const localStore = {
     logos: [] as any[],
     profile_photo: [] as any[],
     visiting_card: [] as any[],
+    color_grading: { raw_image: '/uploads/color-grading/default_raw.jpg', edited_image: '/uploads/color-grading/default_edited.jpg' } as any,
     admin_users: [
       { username: '9146929608', password: 'Self@123' },
       { username: 'admin', password: 'admin123' }
@@ -1050,6 +1054,158 @@ app.delete('/api/visiting-card', async (req: Request, res: Response) => {
     });
   } catch (e) {
     res.status(500).json({ error: 'Delete error' });
+  }
+});
+
+
+// 5e. Color Grading (Before/After Slider) Endpoints
+app.get('/api/color-grading', async (req: Request, res: Response) => {
+  try {
+    const defaultRaw = '/uploads/color-grading/default_raw.jpg';
+    const defaultEdited = '/uploads/color-grading/default_edited.jpg';
+
+    try {
+      const { data, error } = await supabase
+        .from('color_grading')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data && (data.raw_image || data.edited_image)) {
+        return res.json({
+          success: true,
+          raw_image: data.raw_image || defaultRaw,
+          edited_image: data.edited_image || defaultEdited,
+          updated_at: data.created_at || null
+        });
+      }
+    } catch (e) {}
+
+    if (localStore.data.color_grading) {
+      return res.json({
+        success: true,
+        raw_image: localStore.data.color_grading.raw_image || defaultRaw,
+        edited_image: localStore.data.color_grading.edited_image || defaultEdited,
+        updated_at: localStore.data.color_grading.updated_at || null
+      });
+    }
+
+    return res.json({
+      success: true,
+      raw_image: defaultRaw,
+      edited_image: defaultEdited
+    });
+  } catch (e) {
+    res.json({
+      success: true,
+      raw_image: '/uploads/color-grading/default_raw.jpg',
+      edited_image: '/uploads/color-grading/default_edited.jpg'
+    });
+  }
+});
+
+app.post(['/api/admin/color-grading', '/api/color-grading'], (req: Request, res: Response) => {
+  uploadColorGrading.fields([
+    { name: 'raw_image', maxCount: 1 },
+    { name: 'edited_image', maxCount: 1 }
+  ])(req, res, async (err: any) => {
+    if (err) {
+      return res.status(400).json({ success: false, error: err.message || 'File upload failed' });
+    }
+
+    try {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+      const body = req.body || {};
+
+      const currentRaw = localStore.data.color_grading?.raw_image || '/uploads/color-grading/default_raw.jpg';
+      const currentEdited = localStore.data.color_grading?.edited_image || '/uploads/color-grading/default_edited.jpg';
+
+      let newRaw = currentRaw;
+      let newEdited = currentEdited;
+
+      if (files && files['raw_image'] && files['raw_image'][0]) {
+        const file = files['raw_image'][0];
+        const ext = path.extname(file.originalname || '.jpg') || '.jpg';
+        const filename = `raw_${Date.now()}${ext}`;
+        const p1 = path.join(colorGradingDir, filename);
+        const p2 = path.join(publicColorGradingDir, filename);
+        try {
+          fs.writeFileSync(p1, file.buffer);
+          fs.writeFileSync(p2, file.buffer);
+        } catch(e) {}
+        newRaw = `/uploads/color-grading/${filename}`;
+      } else if (body.raw_image) {
+        newRaw = body.raw_image;
+      }
+
+      if (files && files['edited_image'] && files['edited_image'][0]) {
+        const file = files['edited_image'][0];
+        const ext = path.extname(file.originalname || '.jpg') || '.jpg';
+        const filename = `edited_${Date.now()}${ext}`;
+        const p1 = path.join(colorGradingDir, filename);
+        const p2 = path.join(publicColorGradingDir, filename);
+        try {
+          fs.writeFileSync(p1, file.buffer);
+          fs.writeFileSync(p2, file.buffer);
+        } catch(e) {}
+        newEdited = `/uploads/color-grading/${filename}`;
+      } else if (body.edited_image) {
+        newEdited = body.edited_image;
+      }
+
+      const updatedRecord = {
+        raw_image: newRaw,
+        edited_image: newEdited,
+        updated_at: new Date().toISOString()
+      };
+
+      localStore.data.color_grading = updatedRecord;
+      localStore.save();
+
+      try {
+        await supabase.from('color_grading').insert([{
+          raw_image: newRaw,
+          edited_image: newEdited
+        }]);
+      } catch (e) {}
+
+      res.json({
+        success: true,
+        message: 'Color grading photos updated successfully!',
+        data: updatedRecord
+      });
+    } catch (e) {
+      console.error('Error saving color grading photos:', e);
+      res.status(500).json({ success: false, error: 'Failed to update color grading photos' });
+    }
+  });
+});
+
+app.delete(['/api/admin/color-grading', '/api/color-grading'], async (req: Request, res: Response) => {
+  try {
+    const defaultRaw = '/uploads/color-grading/default_raw.jpg';
+    const defaultEdited = '/uploads/color-grading/default_edited.jpg';
+
+    localStore.data.color_grading = {
+      raw_image: defaultRaw,
+      edited_image: defaultEdited,
+      updated_at: new Date().toISOString()
+    };
+    localStore.save();
+
+    try {
+      await supabase.from('color_grading').delete().neq('id', 0);
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      message: 'Color grading photos reset to default!',
+      raw_image: defaultRaw,
+      edited_image: defaultEdited
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Failed to reset color grading photos' });
   }
 });
 

@@ -2,7 +2,141 @@
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8TCG61273V"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8TCG61273V">
+        // --- Color Grading (Before/After) Admin Handlers ---
+        function updateAdminBeforeAfter(val) {
+            const pct = Math.max(0, Math.min(100, Number(val)));
+            const rawImg = document.getElementById('adminBaAfterImg');
+            const divider = document.getElementById('adminBaDivider');
+            if (rawImg) {
+                rawImg.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
+                rawImg.style.webkitClipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
+            }
+            if (divider) {
+                divider.style.left = pct + '%';
+            }
+        }
+
+        function previewSelectedImage(input, targetImgId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(targetImgId);
+                    if (img) img.src = e.target.result;
+                    if (targetImgId === 'adminRawPreviewImg') {
+                        const splitRaw = document.getElementById('adminBaAfterImg');
+                        if (splitRaw) splitRaw.src = e.target.result;
+                    } else if (targetImgId === 'adminEditedPreviewImg') {
+                        const splitEdited = document.getElementById('adminBaBeforeImg');
+                        if (splitEdited) splitEdited.src = e.target.result;
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function loadAdminColorGrading() {
+            try {
+                const res = await fetch('/api/color-grading');
+                const data = await res.json();
+                if (data && data.success) {
+                    const rawUrl = data.raw_image || '/uploads/color-grading/default_raw.jpg';
+                    const editedUrl = data.edited_image || '/uploads/color-grading/default_edited.jpg';
+
+                    const rawPreview = document.getElementById('adminRawPreviewImg');
+                    const editedPreview = document.getElementById('adminEditedPreviewImg');
+                    const splitRaw = document.getElementById('adminBaAfterImg');
+                    const splitEdited = document.getElementById('adminBaBeforeImg');
+
+                    if (rawPreview) rawPreview.src = rawUrl;
+                    if (editedPreview) editedPreview.src = editedUrl;
+                    if (splitRaw) splitRaw.src = rawUrl;
+                    if (splitEdited) splitEdited.src = editedUrl;
+                }
+            } catch (e) {
+                console.error('Failed to load color grading photos:', e);
+            }
+        }
+
+        async function uploadSingleCgPhoto(type) {
+            const inputId = type === 'raw' ? 'rawFileInput' : 'editedFileInput';
+            const fileInput = document.getElementById(inputId);
+            const statusBox = document.getElementById('cgStatusMessage');
+
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                alert(currentLang === 'mr' ? 'कृपया आधी फोटो फाईल निवडा.' : 'Please select an image file first.');
+                return;
+            }
+
+            const formData = new FormData();
+            if (type === 'raw') {
+                formData.append('raw_image', fileInput.files[0]);
+            } else {
+                formData.append('edited_image', fileInput.files[0]);
+            }
+
+            try {
+                if (statusBox) {
+                    statusBox.style.display = 'block';
+                    statusBox.style.background = '#EFF6FF';
+                    statusBox.style.color = '#1D4ED8';
+                    statusBox.style.border = '1px solid #BFDBFE';
+                    statusBox.textContent = currentLang === 'mr' ? 'फोटो अपलोड होत आहे, कृपया थांबा...' : 'Uploading photo, please wait...';
+                }
+
+                const res = await fetch('/api/admin/color-grading', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data && data.success) {
+                    if (statusBox) {
+                        statusBox.style.background = '#DCFCE7';
+                        statusBox.style.color = '#15803D';
+                        statusBox.style.border = '1px solid #86EFAC';
+                        statusBox.textContent = currentLang === 'mr' ? '✅ फोटो यशस्वीरीत्या अद्ययावत झाला!' : '✅ Photo updated successfully!';
+                    }
+                    setTimeout(() => { if (statusBox) statusBox.style.display = 'none'; }, 4000);
+                    fileInput.value = '';
+                    loadAdminColorGrading();
+                } else {
+                    throw new Error(data.error || 'Upload failed');
+                }
+            } catch (err) {
+                if (statusBox) {
+                    statusBox.style.background = '#FEE2E2';
+                    statusBox.style.color = '#991B1B';
+                    statusBox.style.border = '1px solid #FCA5A5';
+                    statusBox.textContent = currentLang === 'mr' ? '❌ फोटो अपलोड करताना त्रुटी आली.' : ('❌ ' + err.message);
+                }
+            }
+        }
+
+        async function resetAdminColorGrading() {
+            const msg = currentLang === 'mr' ? 'तुम्हाला खात्री आहे का की Before/After फोटो डीफॉल्टवर पूर्ववत करायचे आहेत?' : 'Are you sure you want to revert Before/After photos to studio defaults?';
+            if (!confirm(msg)) return;
+
+            const statusBox = document.getElementById('cgStatusMessage');
+            try {
+                const res = await fetch('/api/admin/color-grading', { method: 'DELETE' });
+                const data = await res.json();
+                if (data && data.success) {
+                    if (statusBox) {
+                        statusBox.style.display = 'block';
+                        statusBox.style.background = '#DCFCE7';
+                        statusBox.style.color = '#15803D';
+                        statusBox.style.border = '1px solid #86EFAC';
+                        statusBox.textContent = currentLang === 'mr' ? '✅ फोटो डीफॉल्टवर पूर्ववत करण्यात आले!' : '✅ Reset to studio defaults successfully!';
+                        setTimeout(() => { statusBox.style.display = 'none'; }, 4000);
+                    }
+                    loadAdminColorGrading();
+                }
+            } catch (e) {
+                alert(currentLang === 'mr' ? 'त्रुटी आली.' : 'Failed to reset.');
+            }
+        }
+    </script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -1438,6 +1572,20 @@
                 ad_tab_reviews: "Review Moderation",
                 ad_tab_portfolio: "Category Cards Manager",
                 ad_tab_logos: "Logo & Branding",
+                ad_tab_color_grading: "Color Grading (Before/After)",
+                ad_sec_cg_title: "🎨 Signature Color Grading (Before/After Slider) Management",
+                ad_desc_cg: "Upload custom RAW capture and Signature Edited photos to showcase your editing skills on the home page split slider.",
+                ad_cg_raw_card: "📷 RAW Photo (Before)",
+                ad_cg_raw_desc: "The unedited, natural camera capture photo.",
+                ad_cg_raw_btn: "Upload RAW Photo",
+                ad_cg_edited_card: "✨ Signature Edit Photo (After)",
+                ad_cg_edited_desc: "Your master color graded and retouched final photo.",
+                ad_cg_edited_btn: "Upload Signature Edit",
+                ad_cg_preview_title: "👁️ Live Before/After Interactive Preview",
+                ad_cg_preview_desc: "Drag the slider to test how clients will experience the comparison on your website (both desktop & mobile).",
+                ad_cg_btn_reset: "🔄 Revert to Studio Defaults",
+                ba_label_raw: "RAW PHOTO",
+                ba_label_edit: "SIGNATURE EDIT ✨",
                 ad_m_total: "Total Booking Requests",
                 ad_m_pending: "Pending Requests (Yellow ⏳)",
                 ad_m_confirmed: "Confirmed Bookings (Green ✅)",

@@ -3,8 +3,14 @@ database.db
 *.db
 public/uploads/*
 !public/uploads/.gitkeep
+!public/uploads/color-grading/
+public/uploads/color-grading/*
+!public/uploads/color-grading/default_*.jpg
 uploads/*
 !uploads/.gitkeep
+!uploads/color-grading/
+uploads/color-grading/*
+!uploads/color-grading/default_*.jpg
 scratch/
 .env
 .DS_Store
@@ -12,4 +18,3 @@ scratch/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-

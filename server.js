@@ -530,6 +530,21 @@ const profileStorage = multer.diskStorage({
     }
 });
 const uploadProfile = multer({ storage: profileStorage });
+// Configure multer storage for Color Grading Photos
+const colorGradingStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, 'public/uploads/color-grading');
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+const uploadColorGrading = multer({ storage: colorGradingStorage, limits: { fileSize: 25 * 1024 * 1024 } });
+
 
 // GET Omkar Profile Photo
 app.get('/api/omkar-photo', (req, res) => {
@@ -615,6 +630,94 @@ app.delete('/api/visiting-card', (req, res) => {
         db.run('DELETE FROM visiting_card', (err) => {
             res.json({ success: true, message: 'Visiting card reset to default!', cardUrl: '/visiting_card.jpg' });
         });
+    });
+});
+
+
+// --- COLOR GRADING (BEFORE/AFTER) API ENDPOINTS ---
+app.get('/api/color-grading', (req, res) => {
+    try {
+        const dbPath = path.join(__dirname, 'database.json');
+        if (fs.existsSync(dbPath)) {
+            const dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+            if (dbData.color_grading) {
+                return res.json({
+                    success: true,
+                    raw_image: dbData.color_grading.raw_image || '/uploads/color-grading/default_raw.jpg',
+                    edited_image: dbData.color_grading.edited_image || '/uploads/color-grading/default_edited.jpg',
+                    updated_at: dbData.color_grading.updated_at || null
+                });
+            }
+        }
+    } catch(e) {}
+    res.json({
+        success: true,
+        raw_image: '/uploads/color-grading/default_raw.jpg',
+        edited_image: '/uploads/color-grading/default_edited.jpg'
+    });
+});
+
+app.post(['/api/admin/color-grading', '/api/color-grading'], uploadColorGrading.fields([
+    { name: 'raw_image', maxCount: 1 },
+    { name: 'edited_image', maxCount: 1 }
+]), (req, res) => {
+    try {
+        const dbPath = path.join(__dirname, 'database.json');
+        let dbData = {};
+        if (fs.existsSync(dbPath)) {
+            dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        }
+        if (!dbData.color_grading) {
+            dbData.color_grading = {
+                raw_image: '/uploads/color-grading/default_raw.jpg',
+                edited_image: '/uploads/color-grading/default_edited.jpg'
+            };
+        }
+
+        if (req.files && req.files['raw_image'] && req.files['raw_image'][0]) {
+            dbData.color_grading.raw_image = '/uploads/color-grading/' + req.files['raw_image'][0].filename;
+        } else if (req.body && req.body.raw_image) {
+            dbData.color_grading.raw_image = req.body.raw_image;
+        }
+
+        if (req.files && req.files['edited_image'] && req.files['edited_image'][0]) {
+            dbData.color_grading.edited_image = '/uploads/color-grading/' + req.files['edited_image'][0].filename;
+        } else if (req.body && req.body.edited_image) {
+            dbData.color_grading.edited_image = req.body.edited_image;
+        }
+
+        dbData.color_grading.updated_at = new Date().toISOString();
+        fs.writeFileSync(dbPath, JSON.stringify(dbData, null, 2), 'utf8');
+
+        res.json({
+            success: true,
+            message: 'Color grading photos updated successfully!',
+            data: dbData.color_grading
+        });
+    } catch (e) {
+        console.error('Error in server.js color-grading:', e);
+        res.status(500).json({ success: false, error: 'Failed to update color grading photos' });
+    }
+});
+
+app.delete(['/api/admin/color-grading', '/api/color-grading'], (req, res) => {
+    try {
+        const dbPath = path.join(__dirname, 'database.json');
+        if (fs.existsSync(dbPath)) {
+            const dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+            dbData.color_grading = {
+                raw_image: '/uploads/color-grading/default_raw.jpg',
+                edited_image: '/uploads/color-grading/default_edited.jpg',
+                updated_at: new Date().toISOString()
+            };
+            fs.writeFileSync(dbPath, JSON.stringify(dbData, null, 2), 'utf8');
+        }
+    } catch(e) {}
+    res.json({
+        success: true,
+        message: 'Color grading photos reset to default!',
+        raw_image: '/uploads/color-grading/default_raw.jpg',
+        edited_image: '/uploads/color-grading/default_edited.jpg'
     });
 });
 

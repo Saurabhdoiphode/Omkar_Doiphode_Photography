@@ -12,6 +12,9 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Best Wedding & Pre-Wedding Photographer in Pune, Ahilyanagar & Sangamner | Omkar Doiphode Photography</title>
 
     <!-- Comprehensive 150+ Top Google Ranking SEO Meta Tags & Geo Metadata -->
@@ -35,7 +38,7 @@
     <meta property="og:description" content="Top-rated Candid Wedding Photography, Pre-Wedding Shoots, Baby Photoshoots & Events across Pune, Ahilyanagar, Sangamner & Maharashtra. Book your dates online!">
     <meta property="og:url" content="https://omkardoiphodephotographyy.netlify.app/">
     <meta property="og:site_name" content="Omkar Doiphode Photography">
-    <meta property="og:image" content="https://omkardoiphodephotographyy.netlify.app/visiting_card.jpg">
+    <meta property="og:image" content="/visiting_card.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
@@ -43,10 +46,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Best Wedding & Pre-Wedding Photographer in Pune & Ahilyanagar">
     <meta name="twitter:description" content="Premium Candid Wedding Photography, Pre-Wedding Shoots, and Films in Pune, Ahilyanagar, Sangamner & Maharashtra.">
-    <meta name="twitter:image" content="https://omkardoiphodephotographyy.netlify.app/visiting_card.jpg">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <meta name="twitter:image" content="/visiting_card.jpg">
 
     <!-- Google Local Business & Photographer Structured Data Schema (JSON-LD) -->
     <script type="application/ld+json">
@@ -105,7 +105,14 @@
             "Event Photography",
             "Birthday Shoots",
             "Candid Photography"
-                    ]
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "500",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
         },
         {
           "@type": "FAQPage",
@@ -180,38 +187,6 @@
         .serif-bold {
             font-family: 'Playfair Display', serif;
             font-weight: 900;
-        }
-
-        .local-seo-section {
-            padding: 4rem 1.5rem;
-            background: #FFFFFF;
-            border-top: 1px solid var(--soft-rose);
-        }
-
-        .local-seo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-            margin-top: 1.8rem;
-        }
-
-        .local-seo-card {
-            padding: 1.25rem;
-            border: 1px solid #E5E7EB;
-            border-radius: 10px;
-            background: #FDFBF7;
-        }
-
-        .local-seo-card h3 {
-            margin-bottom: 0.35rem;
-            font-family: 'Playfair Display', serif;
-            font-size: 1.15rem;
-        }
-
-        .local-seo-card p {
-            color: #4B5563;
-            font-size: 0.88rem;
-            line-height: 1.6;
         }
 
         /* --- KEYFRAME ANIMATIONS --- */
@@ -835,43 +810,76 @@
         }
 
         .ba-container {
-            max-width: 900px;
-            margin: 2rem auto 0 auto;
+            max-width: 960px;
+            margin: 2.5rem auto 0 auto;
             position: relative;
-            height: 480px;
-            border-radius: 16px;
+            height: 520px;
+            border-radius: 18px;
             overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.16);
             border: 2px solid var(--accent-gold);
+            background: #0F172A;
+            user-select: none;
+            touch-action: pan-y;
         }
 
-        .ba-image {
+        .ba-img {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-size: cover;
-            background-position: center;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            pointer-events: none;
         }
 
-        .ba-before {
-            background: linear-gradient(135deg, #7F7F7F 0%, #4A4A4A 100%);
+        .ba-img-raw {
+            clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+            -webkit-clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+            z-index: 5;
+        }
+
+        .ba-img-raw.is-default-raw {
+            filter: contrast(0.82) brightness(0.92) saturate(0.78);
+        }
+
+        .ba-img-edited {
+            z-index: 2;
+        }
+
+        .ba-divider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            background: #FFFFFF;
+            transform: translateX(-50%);
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.65);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .ba-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 42px;
+            height: 42px;
+            background: #D4A574;
+            border: 3px solid #FFFFFF;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #DDD;
-        }
-
-        .ba-after {
-            background: linear-gradient(135deg, #E5D0C5 0%, #D4A574 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #1A1A1A;
-            width: 50%;
-            overflow: hidden;
-            border-right: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.45);
+            font-size: 16px;
+            font-weight: 900;
+            color: #0F172A;
+            user-select: none;
         }
 
         .ba-label {
@@ -880,13 +888,29 @@
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: 1px;
             text-transform: uppercase;
+            pointer-events: none;
+            user-select: none;
+            z-index: 12;
         }
 
-        .ba-label-before { left: 20px; background: rgba(0,0,0,0.7); color: white; }
-        .ba-label-after { right: 20px; background: var(--accent-gold); color: #1A1A1A; }
+        .ba-label-before {
+            left: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            color: #FFFFFF;
+            border: 1px solid rgba(212, 165, 116, 0.6);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .ba-label-after {
+            right: 20px;
+            background: var(--accent-gold);
+            color: #0F172A;
+            box-shadow: 0 4px 14px rgba(212, 165, 116, 0.45);
+        }
 
         .ba-slider-input {
             position: absolute;
@@ -896,7 +920,10 @@
             height: 100%;
             opacity: 0;
             cursor: ew-resize;
-            z-index: 10;
+            z-index: 20;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* --- PRICE ESTIMATOR SECTION --- */
@@ -2214,173 +2241,21 @@
 
             /* Before & After Color Grading Slider */
             .ba-container {
-                height: 260px !important;
+                height: 350px !important;
+                border-radius: 14px !important;
             }
-            .ba-image h3 {
-                font-size: 1.1rem !important;
-            }
-            .ba-image p {
-                font-size: 0.75rem !important;
-            }
-
-            /* Floating WhatsApp Widget */
-            .floating-whatsapp-btn {
-                bottom: 18px !important;
-                left: 18px !important;
-                padding: 10px 16px !important;
-                font-size: 0.8rem !important;
-            }
-            
-            /* Featured Collections Category Filter Bar (2 per row on mobile) */
-            .portfolio-filter-bar {
-                display: grid !important;
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 8px !important;
-                width: 100% !important;
-                max-width: 440px !important;
-                margin: 0 auto 2rem auto !important;
-            }
-            .filter-tab-btn {
-                padding: 9px 6px !important;
-                font-size: 0.78rem !important;
-                text-align: center !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                white-space: nowrap !important;
-            }
-
-            /* Compact Portfolio Cards Height Reduction on Mobile */
-            .portfolio-card {
-                border-radius: 10px !important;
-            }
-            .card-image {
-                height: 110px !important;
-            }
-            .card-badge {
-                font-size: 9px !important;
-                padding: 2px 7px !important;
-                top: 6px !important;
-                left: 6px !important;
-            }
-            .card-content {
-                padding: 0.6rem 0.5rem !important;
-            }
-            .card-title {
-                font-size: 0.85rem !important;
-                margin-bottom: 0.2rem !important;
-                line-height: 1.2 !important;
-            }
-            .card-description {
-                font-size: 0.71rem !important;
-                margin-bottom: 0 !important;
-                line-height: 1.25 !important;
-            }
-
-            /* Status Tracker & Review Modal Mobile Alignment */
-            .status-tracker-card {
-                padding: 1.2rem 1rem !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-            .track-input-group {
-                flex-direction: column !important;
-                width: 100% !important;
-            }
-            .track-input-group input {
-                width: 100% !important;
-                margin-bottom: 8px !important;
-            }
-            .track-input-group button {
-                width: 100% !important;
-            }
-            /* Booking Form Wrapper Mobile Alignment */
-            .booking-form-wrapper {
-                padding: 1.2rem 1rem !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-                margin: 0 auto !important;
-            }
-            .booking-date-display {
-                font-size: 0.85rem !important;
-                padding: 8px 10px !important;
-                word-break: break-word !important;
-            }
-            .form-actions {
-                flex-direction: column !important;
-                gap: 0.6rem !important;
-                width: 100% !important;
-            }
-            .submit-btn, .cancel-btn {
-                width: 100% !important;
-                padding: 12px !important;
-                text-align: center !important;
-                flex: none !important;
-            }
-
-            /* Contact Cards & Social Logos Mobile Alignment */
-            .contact-cards-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 0.6rem !important;
-            }
-            .contact-card {
-                padding: 0.9rem 0.6rem !important;
-            }
-            .contact-card-icon {
-                font-size: 24px !important;
-            }
-            .contact-card-title {
-                font-size: 0.85rem !important;
-            }
-            .contact-card-link {
-                font-size: 0.78rem !important;
-            }
-            .social-logos-container {
-                gap: 6px !important;
-            }
-            .social-logo-btn {
-                padding: 6px 12px !important;
-                font-size: 0.78rem !important;
-            }
-            .working-hours-bar {
-                font-size: 0.78rem !important;
-                padding: 8px 14px !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-
-            /* Stats Section Mobile 2x2 Grid Alignment */
-            .stats-section {
-                padding: 1.8rem 0.8rem !important;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 0.6rem !important;
-            }
-            .stat-card {
-                padding: 0.8rem 0.5rem !important;
-            }
-            .stat-number {
-                font-size: 1.6rem !important;
-            }
-            .stat-label {
-                font-size: 0.7rem !important;
-                letter-spacing: 0.5px !important;
-            }
-
-            .ba-container {
-                height: 380px !important;
+            .ba-handle {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 13px !important;
             }
             .ba-label {
-                font-size: 0.68rem !important;
+                font-size: 0.65rem !important;
                 padding: 4px 10px !important;
-                top: 10px !important;
+                top: 12px !important;
             }
-            .ba-label-before { left: 10px !important; }
-            .ba-label-after { right: 10px !important; }
-        }
+            .ba-label-before { left: 12px !important; }
+            .ba-label-after { right: 12px !important; }
     </style>
 </head>
 <body>
@@ -2458,7 +2333,7 @@
                 </div>
                 
                 <!-- Main Shimmer Title -->
-                <h1 class="hero-main-title" data-i18n="hero_title">Wedding & Pre-Wedding Photographer in Pune, Ahilyanagar & Sangamner</h1>
+                <h1 class="hero-main-title" data-i18n="hero_title">Capturing Eternal Moments With Artistry</h1>
                 
                 <!-- Decorative Line -->
                 <div class="hero-divider"></div>
@@ -2507,34 +2382,6 @@
         </div>
     </section>
 
-    <!-- Search-friendly service and location content for local clients -->
-    <section class="local-seo-section reveal-on-scroll" id="services">
-        <div style="max-width: 1100px; margin: 0 auto; text-align: center;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2px;">SERVING MAHARASHTRA</span>
-            <h2 class="section-title" style="margin-bottom: 0.7rem;">Wedding Photographer in Pune, Ahilyanagar & Sangamner</h2>
-            <p style="max-width: 780px; margin: 0 auto; color: #4B5563; line-height: 1.75; font-size: 0.95rem;">Omkar Doiphode Photography creates candid wedding photography, pre-wedding stories, family portraits and event films for couples and families across Pune, Ahilyanagar, Ahmednagar, Sangamner and nearby Maharashtra locations. Every booking includes a personal consultation, a clear shot plan and a private photo delivery experience.</p>
-
-            <div class="local-seo-grid">
-                <article class="local-seo-card">
-                    <h3>Wedding Photography</h3>
-                    <p>Haldi, wedding rituals, candid couple portraits, receptions and cinematic wedding films.</p>
-                </article>
-                <article class="local-seo-card">
-                    <h3>Pre-Wedding Shoots</h3>
-                    <p>Creative couple sessions in Pune, Mahabaleshwar, Ahilyanagar and outdoor locations across Maharashtra.</p>
-                </article>
-                <article class="local-seo-card">
-                    <h3>Baby & Family Portraits</h3>
-                    <p>Newborn, milestone, birthday and family photoshoots planned around your child's comfort.</p>
-                </article>
-                <article class="local-seo-card">
-                    <h3>Events & Portfolios</h3>
-                    <p>Engagements, birthdays, corporate events, model portfolios and professional studio portraits.</p>
-                </article>
-            </div>
-        </div>
-    </section>
-
     <!-- Portfolio Section with Category Filter -->
     <section class="portfolio-section reveal-on-scroll" id="portfolio-section">
         <div class="portfolio-container">
@@ -2561,7 +2408,7 @@
                             <span style="font-size:0.85rem; font-weight:600; color:#e4e4e7; letter-spacing:0.5px;" data-i18n="ph_no_photos">No Photos Added Yet</span>
                             <span style="font-size:0.75rem; color:var(--accent-gold); margin-top:4px; font-weight:500;" data-i18n="ph_admin_add">Admin can add photos</span>
                         </div>
-                        <img src="" alt="Wedding Photography" loading="lazy" decoding="async" style="display:none; width:100%; height:220px; object-fit:cover;">
+                        <img src="" alt="Wedding Photography" style="display:none; width:100%; height:220px; object-fit:cover;">
                         <span class="card-badge">💍 0 Photos</span>
                     </div>
                     <div class="card-content">
@@ -2578,7 +2425,7 @@
                             <span style="font-size:0.85rem; font-weight:600; color:#e4e4e7; letter-spacing:0.5px;" data-i18n="ph_no_photos">No Photos Added Yet</span>
                             <span style="font-size:0.75rem; color:var(--accent-gold); margin-top:4px; font-weight:500;" data-i18n="ph_admin_add">Admin can add photos</span>
                         </div>
-                        <img src="" alt="Pre-Wedding Shoot" loading="lazy" decoding="async" style="display:none; width:100%; height:220px; object-fit:cover;">
+                        <img src="" alt="Pre-Wedding Shoot" style="display:none; width:100%; height:220px; object-fit:cover;">
                         <span class="card-badge">💑 0 Photos</span>
                     </div>
                     <div class="card-content">
@@ -2595,7 +2442,7 @@
                             <span style="font-size:0.85rem; font-weight:600; color:#e4e4e7; letter-spacing:0.5px;" data-i18n="ph_no_photos">No Photos Added Yet</span>
                             <span style="font-size:0.75rem; color:var(--accent-gold); margin-top:4px; font-weight:500;" data-i18n="ph_admin_add">Admin can add photos</span>
                         </div>
-                        <img src="" alt="Baby Shoot" loading="lazy" decoding="async" style="display:none; width:100%; height:220px; object-fit:cover;">
+                        <img src="" alt="Baby Shoot" style="display:none; width:100%; height:220px; object-fit:cover;">
                         <span class="card-badge">👶 0 Photos</span>
                     </div>
                     <div class="card-content">
@@ -2612,7 +2459,7 @@
                             <span style="font-size:0.85rem; font-weight:600; color:#e4e4e7; letter-spacing:0.5px;" data-i18n="ph_no_photos">No Photos Added Yet</span>
                             <span style="font-size:0.75rem; color:var(--accent-gold); margin-top:4px; font-weight:500;" data-i18n="ph_admin_add">Admin can add photos</span>
                         </div>
-                        <img src="" alt="Birthday Shoot" loading="lazy" decoding="async" style="display:none; width:100%; height:220px; object-fit:cover;">
+                        <img src="" alt="Birthday Shoot" style="display:none; width:100%; height:220px; object-fit:cover;">
                         <span class="card-badge">🎂 0 Photos</span>
                     </div>
                     <div class="card-content">
@@ -2629,7 +2476,7 @@
                             <span style="font-size:0.85rem; font-weight:600; color:#e4e4e7; letter-spacing:0.5px;" data-i18n="ph_no_photos">No Photos Added Yet</span>
                             <span style="font-size:0.75rem; color:var(--accent-gold); margin-top:4px; font-weight:500;" data-i18n="ph_admin_add">Admin can add photos</span>
                         </div>
-                        <img src="" alt="Events Photography" loading="lazy" decoding="async" style="display:none; width:100%; height:220px; object-fit:cover;">
+                        <img src="" alt="Events Photography" style="display:none; width:100%; height:220px; object-fit:cover;">
                         <span class="card-badge">🎉 0 Photos</span>
                     </div>
                     <div class="card-content">
@@ -2646,7 +2493,7 @@
                             <span style="font-size:0.85rem; font-weight:600; color:#e4e4e7; letter-spacing:0.5px;" data-i18n="ph_no_photos">No Photos Added Yet</span>
                             <span style="font-size:0.75rem; color:var(--accent-gold); margin-top:4px; font-weight:500;" data-i18n="ph_admin_add">Admin can add photos</span>
                         </div>
-                        <img src="" alt="Model & Fashion Photoshoot" loading="lazy" decoding="async" style="display:none; width:100%; height:220px; object-fit:cover;">
+                        <img src="" alt="Model & Fashion Photoshoot" style="display:none; width:100%; height:220px; object-fit:cover;">
                         <span class="card-badge">📸 0 Photos</span>
                     </div>
                     <div class="card-content">
@@ -2661,6 +2508,7 @@
     </section>
 
     <!-- Before & After Editing / Retouching Split Slider -->
+    <!-- Before & After Editing / Retouching Split Slider -->
     <section class="before-after-section reveal-on-scroll" id="retouching">
         <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
             <h2 class="section-title" data-i18n="ba_title">Signature Color Grading & Editing</h2>
@@ -2668,29 +2516,22 @@
             
             <div class="ba-container" id="baContainer">
                 <!-- Base Layer (Right Side / Signature Edit Master Color Grade) -->
-                <div class="ba-image ba-before" style="background: linear-gradient(135deg, #1A1A1A 0%, #2D251E 50%, #1A1A1A 100%); display: flex; align-items: center; justify-content: center;">
-                    <div style="text-align: center; color: #FFFFFF;">
-                        <span style="font-size: 64px;">✨</span>
-                        <h3 style="font-size: 1.6rem; font-family: 'Playfair Display', serif; font-weight: 900; margin-top: 10px; color: var(--accent-gold);" data-i18n="ba_master_title">Omkar's Master Color Grade</h3>
-                        <p style="font-size: 0.95rem; color: #E2E8F0;" data-i18n="ba_master_desc">Warm Tones, Fine Contrast & Skin Retouching</p>
-                    </div>
-                </div>
+                <img id="baBeforeImg" src="/uploads/color-grading/default_edited.jpg" alt="Signature Edit Master Grade" class="ba-img ba-img-edited">
                 
                 <!-- Overlay Layer (Left Side / RAW Unedited Photo) -->
-                <div class="ba-image ba-after" id="baAfterLayer" style="background: linear-gradient(135deg, #64748B 0%, #475569 100%); width: 50%;">
-                    <div style="text-align: center; width: 100%; max-width: 100%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #FFFFFF; padding: 0 1rem;">
-                        <span style="font-size: 64px;">📷</span>
-                        <h3 style="font-size: 1.6rem; font-family: 'Playfair Display', serif; font-weight: 900; margin-top: 10px; color: #FFFFFF;" data-i18n="ba_raw_title">RAW Unedited Capture</h3>
-                        <p style="font-size: 0.95rem; color: #F1F5F9;" data-i18n="ba_raw_desc">Standard Camera Color Profile</p>
-                    </div>
+                <img id="baAfterImg" src="/uploads/color-grading/default_raw.jpg" alt="RAW Unedited Capture" class="ba-img ba-img-raw is-default-raw">
+
+                <!-- Divider Handle Line -->
+                <div class="ba-divider" id="baDivider">
+                    <div class="ba-handle">↔</div>
                 </div>
 
                 <!-- Badges -->
-                <div class="ba-label ba-label-before" style="left: 20px; background: rgba(15, 23, 42, 0.9); color: #FFFFFF; border: 1px solid rgba(212,165,116,0.6); z-index: 12;" data-i18n="ba_label_raw">RAW PHOTO</div>
-                <div class="ba-label ba-label-after" style="right: 20px; background: var(--accent-gold); color: #1A1A1A; font-weight: 800; z-index: 12;" data-i18n="ba_label_edit">SIGNATURE EDIT ✨</div>
+                <div class="ba-label ba-label-before" data-i18n="ba_label_raw">RAW PHOTO</div>
+                <div class="ba-label ba-label-after" data-i18n="ba_label_edit">SIGNATURE EDIT ✨</div>
 
                 <!-- Range Slider Controller -->
-                <input type="range" min="0" max="100" value="50" class="ba-slider-input" oninput="updateBeforeAfter(this.value)">
+                <input type="range" min="0" max="100" value="50" class="ba-slider-input" id="baSlider" oninput="updateBeforeAfter(this.value)" aria-label="Before and after color grading comparison slider">
             </div>
         </div>
     </section>
@@ -2893,7 +2734,7 @@
                 <div class="about-bio">
                     <!-- Circular Profile Photo Header -->
                     <div class="about-profile-header">
-                        <img id="aboutOmkarProfileImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'><rect width='400' height='400' fill='%2318181b'/><text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' font-size='80' fill='%23d4a574'>📷</text><text x='50%' y='65%' dominant-baseline='middle' text-anchor='middle' font-size='20' font-family='sans-serif' font-weight='bold' fill='%23e4e4e7'>Omkar Doiphode</text></svg>" alt="Omkar Doiphode Photographer Profile" loading="lazy" decoding="async" class="about-profile-img">
+                        <img id="aboutOmkarProfileImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'><rect width='400' height='400' fill='%2318181b'/><text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' font-size='80' fill='%23d4a574'>📷</text><text x='50%' y='65%' dominant-baseline='middle' text-anchor='middle' font-size='20' font-family='sans-serif' font-weight='bold' fill='%23e4e4e7'>Omkar Doiphode</text></svg>" alt="Omkar Doiphode Photographer Profile" class="about-profile-img">
                         <div class="about-profile-info">
                             <h3 class="about-profile-name" data-i18n="about_name">Omkar Doiphode</h3>
                             <p class="about-profile-title" data-i18n="about_role">Founder & Lead Photographer</p>
@@ -3012,7 +2853,7 @@
                 nav_admin_login: "⚙️ Admin Login",
 
                 hero_tag: "✨ SIGNATURE INDIAN WEDDING & EVENT PHOTOGRAPHY",
-                hero_title: "Wedding & Pre-Wedding Photographer in Pune, Ahilyanagar & Sangamner",
+                hero_title: "Capturing Eternal Moments With Artistry",
                 hero_subtitle: "Omkar Doiphode Signature Photography",
                 hero_desc: "From intimate wedding vows to grand celebrations, we frame emotions that last a lifetime with timeless elegance.",
                 hero_btn_visiting: "🎴 Visiting Card",
@@ -3166,7 +3007,7 @@
                 nav_admin_login: "⚙️ ॲडमीन",
 
                 hero_tag: "✨ मानांकित भारतीय लग्न आणि सोहळे छायाचित्रण",
-                hero_title: "पुणे, अहिल्यानगर आणि संगमनेरमधील वेडिंग व प्री-वेडिंग फोटोग्राफर",
+                hero_title: "खास क्षणांना आठवणीत जपणारी छायाचित्रकला",
                 hero_subtitle: "ओमकार डोईफोडे फोटोग्राफी",
                 hero_desc: "लग्नाचे मंगल क्षण असो वा भव्य सोहळे, प्रत्येक सुंदर आठवण आम्ही नेहमीसाठी जपून ठेवतो.",
                 hero_btn_visiting: "🎴 व्हिजिटिंग कार्ड",
@@ -3918,6 +3759,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadLogo();
             fetchCalendarStatuses();
+            fetchColorGradingImages();
+            initBeforeAfterTouch();
 
             const bookingForm = document.getElementById('bookingForm');
             const msgBox = document.getElementById('bookingMessage');
@@ -4141,9 +3984,64 @@
 
         // 2. Before / After Retouching Split Slider Handler
         function updateBeforeAfter(val) {
-            const afterLayer = document.getElementById('baAfterLayer');
-            if (afterLayer) {
-                afterLayer.style.width = val + '%';
+            const rawImg = document.getElementById('baAfterImg');
+            const divider = document.getElementById('baDivider');
+            
+            const pct = Math.max(0, Math.min(100, Number(val)));
+            if (rawImg) {
+                rawImg.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
+                rawImg.style.webkitClipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
+            }
+            if (divider) {
+                divider.style.left = pct + '%';
+            }
+        }
+
+        // Initialize Smooth Touch & Mouse Dragging for Mobile & Desktop
+        function initBeforeAfterTouch() {
+            const container = document.getElementById('baContainer');
+            const slider = document.getElementById('baSlider');
+            if (!container) return;
+
+            function handleMove(e) {
+                const rect = container.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                let pct = ((clientX - rect.left) / rect.width) * 100;
+                pct = Math.max(0, Math.min(100, pct));
+                if (slider) slider.value = pct;
+                updateBeforeAfter(pct);
+            }
+
+            let isDragging = false;
+            container.addEventListener('mousedown', (e) => { isDragging = true; handleMove(e); });
+            window.addEventListener('mousemove', (e) => { if (isDragging) handleMove(e); });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            container.addEventListener('touchstart', (e) => { isDragging = true; handleMove(e); }, { passive: true });
+            container.addEventListener('touchmove', (e) => { if (isDragging) handleMove(e); }, { passive: true });
+            window.addEventListener('touchend', () => { isDragging = false; });
+        }
+
+        // Fetch Dynamic Color Grading Photos Uploaded by Admin
+        async function fetchColorGradingImages() {
+            try {
+                const res = await fetch('/api/color-grading');
+                const data = await res.json();
+                if (data && data.success) {
+                    const beforeImg = document.getElementById('baBeforeImg');
+                    const afterImg = document.getElementById('baAfterImg');
+                    if (beforeImg && data.edited_image) {
+                        beforeImg.src = data.edited_image;
+                    }
+                    if (afterImg && data.raw_image) {
+                        afterImg.src = data.raw_image;
+                        if (data.raw_image !== '/uploads/color-grading/default_raw.jpg') {
+                            afterImg.classList.remove('is-default-raw');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('Error fetching color grading photos:', e);
             }
         }
 

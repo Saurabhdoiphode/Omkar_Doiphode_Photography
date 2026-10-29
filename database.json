@@ -92,6 +92,11 @@
   "logos": [],
   "profile_photo": [],
   "visiting_card": [],
+  "color_grading": {
+    "raw_image": "/uploads/color-grading/default_raw.jpg",
+    "edited_image": "/uploads/color-grading/default_edited.jpg",
+    "updated_at": "2026-10-29T17:12:05.397Z"
+  },
   "admin_users": [
     {
       "username": "9146929608",
