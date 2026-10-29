@@ -823,33 +823,60 @@
             touch-action: pan-y;
         }
 
-        .ba-image {
+        .ba-img {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-size: cover;
-            background-position: center;
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+            pointer-events: none;
         }
 
-        .ba-before {
-            background: linear-gradient(135deg, #7F7F7F 0%, #4A4A4A 100%);
+        .ba-img-raw {
+            clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+            -webkit-clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+            z-index: 5;
+            filter: contrast(0.82) brightness(0.92) saturate(0.78);
+        }
+
+        .ba-img-edited {
+            z-index: 2;
+        }
+
+        .ba-divider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            background: #FFFFFF;
+            transform: translateX(-50%);
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.65);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .ba-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gold);
+            border: 3px solid #FFFFFF;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #DDD;
-        }
-
-        .ba-after {
-            background: linear-gradient(135deg, #E5D0C5 0%, #D4A574 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #1A1A1A;
-            width: 50%;
-            overflow: hidden;
-            border-right: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.45);
+            font-size: 15px;
+            font-weight: 900;
+            color: #0F172A;
+            user-select: none;
         }
 
         .ba-label {
@@ -874,7 +901,7 @@
             height: 100%;
             opacity: 0;
             cursor: ew-resize;
-            z-index: 10;
+            z-index: 20;
         }
 
         /* --- PRICE ESTIMATOR SECTION --- */
@@ -2617,22 +2644,15 @@
             <p style="color: #666; font-size: 0.95rem;" data-i18n="ba_desc">Drag the slider left or right to see how we transform raw moments into magazine-quality art</p>
             
             <div class="ba-container" id="baContainer">
-                <!-- Base Layer (Right Side / Signature Edit Master Color Grade) -->
-                <div class="ba-image ba-before" style="background: linear-gradient(135deg, #1A1A1A 0%, #2D251E 50%, #1A1A1A 100%); display: flex; align-items: center; justify-content: center;">
-                    <div style="text-align: center; color: #FFFFFF;">
-                        <span style="font-size: 64px;">✨</span>
-                        <h3 style="font-size: 1.6rem; font-family: 'Playfair Display', serif; font-weight: 900; margin-top: 10px; color: var(--accent-gold);" data-i18n="ba_master_title">Omkar's Master Color Grade</h3>
-                        <p style="font-size: 0.95rem; color: #E2E8F0;" data-i18n="ba_master_desc">Warm Tones, Fine Contrast & Skin Retouching</p>
-                    </div>
-                </div>
+                <!-- Base Layer (Signature Edit Master Color Grade) -->
+                <img id="baBeforeImg" src="/uploads/color-grading/default_edited.jpg" alt="Signature Edit Master Grade" class="ba-img ba-img-edited">
                 
-                <!-- Overlay Layer (Left Side / RAW Unedited Photo) -->
-                <div class="ba-image ba-after" id="baAfterLayer" style="background: linear-gradient(135deg, #64748B 0%, #475569 100%); width: 50%;">
-                    <div style="text-align: center; width: 100%; max-width: 100%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #FFFFFF; padding: 0 1rem;">
-                        <span style="font-size: 64px;">📷</span>
-                        <h3 style="font-size: 1.6rem; font-family: 'Playfair Display', serif; font-weight: 900; margin-top: 10px; color: #FFFFFF;" data-i18n="ba_raw_title">RAW Unedited Capture</h3>
-                        <p style="font-size: 0.95rem; color: #F1F5F9;" data-i18n="ba_raw_desc">Standard Camera Color Profile</p>
-                    </div>
+                <!-- Overlay Layer (RAW Unedited Photo) -->
+                <img id="baAfterImg" src="/uploads/color-grading/default_raw.jpg" alt="RAW Unedited Capture" class="ba-img ba-img-raw">
+
+                <!-- Split Divider Line with Handle -->
+                <div class="ba-divider" id="baDivider">
+                    <div class="ba-handle">↔</div>
                 </div>
 
                 <!-- Badges -->
@@ -2640,7 +2660,7 @@
                 <div class="ba-label ba-label-after" style="right: 20px; background: var(--accent-gold); color: #1A1A1A; font-weight: 800; z-index: 12;" data-i18n="ba_label_edit">SIGNATURE EDIT ✨</div>
 
                 <!-- Range Slider Controller -->
-                <input type="range" min="0" max="100" value="50" class="ba-slider-input" oninput="updateBeforeAfter(this.value)">
+                <input type="range" min="0" max="100" value="50" class="ba-slider-input" id="baSlider" oninput="updateBeforeAfter(this.value)" aria-label="Before and after color grading comparison slider">
             </div>
         </div>
     </section>
@@ -4092,10 +4112,52 @@
 
         // 2. Before / After Retouching Split Slider Handler
         function updateBeforeAfter(val) {
-            const afterLayer = document.getElementById('baAfterLayer');
-            if (afterLayer) {
-                afterLayer.style.width = val + '%';
+            const rawImg = document.getElementById('baAfterImg');
+            const divider = document.getElementById('baDivider');
+            const slider = document.getElementById('baSlider');
+            const pct = Math.max(0, Math.min(100, Number(val)));
+            if (rawImg) {
+                rawImg.style.clipPath = 'polygon(0 0, ' + pct + '% 0, ' + pct + '% 100%, 0 100%)';
+                rawImg.style.webkitClipPath = 'polygon(0 0, ' + pct + '% 0, ' + pct + '% 100%, 0 100%)';
             }
+            if (divider) {
+                divider.style.left = pct + '%';
+            }
+            if (slider && slider.value != pct) {
+                slider.value = pct;
+            }
+        }
+
+        // Initialize Smooth Touch & Mouse Drag on Slider Container
+        function initBeforeAfterTouch() {
+            const container = document.getElementById('baContainer');
+            if (!container) return;
+
+            let isDragging = false;
+            const updateFromClientX = (clientX) => {
+                const rect = container.getBoundingClientRect();
+                if (rect.width <= 0) return;
+                const offsetX = clientX - rect.left;
+                const pct = Math.max(0, Math.min(100, (offsetX / rect.width) * 100));
+                updateBeforeAfter(pct);
+            };
+
+            container.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                updateFromClientX(e.clientX);
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                updateFromClientX(e.clientX);
+            });
+
+            window.addEventListener('pointerup', () => {
+                isDragging = false;
+            });
+            window.addEventListener('pointercancel', () => {
+                isDragging = false;
+            });
         }
 
         // 3. Package Price Estimator Calculator
